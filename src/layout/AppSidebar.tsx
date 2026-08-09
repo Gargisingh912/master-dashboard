@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 
-// Assume these icons are imported from an icon library
 import {
   BoxIcon,
   ChatIcon,
@@ -13,7 +12,6 @@ import {
   TableIcon,
   UserCircleIcon,
   DocsIcon,
-
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import { supabase } from "../config/supabase";
@@ -26,74 +24,119 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-const navItems: NavItem[] = [
-  {
-    icon: <GridIcon />,
-    name: "Overview",
-    path: "/dashboard/kitchen",
-  },
-  {
-    icon: <BoxIcon />,
-    name: "Orders",
-    path: "/orders-tables",
-  },
-  {
-    icon: <ListIcon />,
-    name: "Menu",
-    path: "/menu",
-  },
-   {
-    icon: <ListIcon />, // ADD THIS ENTRY
-    name: "QR Code",
-    path: "/qr-code",
-  },
-  {
-    name: "Inventory",
-    icon: <TableIcon />,
-    path: "/inventory",
-  },
-  {
-    name: "Finance",
-    icon: <DollarLineIcon />,
-    path: "/finance",
-  },
-  {
-    name: "Customers",
-    icon: <UserCircleIcon />,
-    path: "/customer-tables",
-  },
-  {
-    name: "Discount Coupons",
-    icon: <UserCircleIcon />,
-    path: "/coupons",
-  },
-  {
-    name: "Talk to your Data!!",
-    icon: <ChatIcon />,
-    path: "/blank",
+// ── Kitchen nav (existing) ───────────────────────────────────────────────────
+const kitchenNavItems: NavItem[] = [
+  { icon: <GridIcon />, name: "Overview", path: "/dashboard/kitchen" },
+  { icon: <BoxIcon />, name: "Orders", path: "/orders-tables" },
+  { icon: <ListIcon />, name: "Menu", path: "/menu" },
+  { icon: <ListIcon />, name: "QR Code", path: "/qr-code" },
+  { icon: <TableIcon />, name: "Inventory", path: "/inventory" },
+  { icon: <DollarLineIcon />, name: "Finance", path: "/finance" },
+  { icon: <UserCircleIcon />, name: "Customers", path: "/customer-tables" },
+  { icon: <UserCircleIcon />, name: "Discount Coupons", path: "/coupons" },
+  { icon: <ChatIcon />, name: "Talk to your Data!!", path: "/blank" },
+  { icon: <DocsIcon />, name: "Docs", path: "/docs" },
+];
 
-  },
-  {
-    name: "Docs",
-    icon: <DocsIcon />,
-    path: "/docs",
-  },
+// ── Salon nav ────────────────────────────────────────────────────────────────
+const scissorsIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" />
+    <line x1="20" y1="4" x2="8.12" y2="15.88" /><line x1="14.47" y1="14.48" x2="20" y2="20" />
+    <line x1="8.12" y1="8.12" x2="12" y2="12" />
+  </svg>
+);
+const calendarIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+const packageIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" /><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" />
+  </svg>
+);
+const receiptIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" />
+  </svg>
+);
+const staffIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+
+const salonNavItems: NavItem[] = [
+  { icon: <GridIcon />, name: "Overview", path: "/dashboard" },
+  { icon: calendarIcon, name: "Appointments", path: "/salon/appointments" },
+  { icon: scissorsIcon, name: "Services", path: "/salon/services" },
+  { icon: staffIcon, name: "Staff", path: "/salon/staff" },
+  { icon: packageIcon, name: "Packages", path: "/salon/packages" },
+  { icon: receiptIcon, name: "Billing", path: "/salon/billing" },
+  { icon: <TableIcon />, name: "Inventory", path: "/inventory" },
+  { icon: <UserCircleIcon />, name: "Customers", path: "/customer-tables" },
+  { icon: <DocsIcon />, name: "Docs", path: "/docs" },
+];
+
+// ── Academy nav ──────────────────────────────────────────────────────────────
+const batchIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+);
+const attendanceIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+  </svg>
+);
+const feeIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+  </svg>
+);
+const coachIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="8" r="4" /><path d="M20 21a8 8 0 1 0-16 0" /><polyline points="12 12 13.5 17 12 16 10.5 17 12 12" />
+  </svg>
+);
+const studentIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" />
+  </svg>
+);
+
+const academyNavItems: NavItem[] = [
+  { icon: <GridIcon />, name: "Overview", path: "/dashboard" },
+  { icon: feeIcon, name: "Fee Payments", path: "/academy/fees" },
+  { icon: studentIcon, name: "Students", path: "/academy/students" },
+  { icon: batchIcon, name: "Batches", path: "/academy/batches" },
+  { icon: attendanceIcon, name: "Attendance", path: "/academy/attendance" },
+  { icon: coachIcon, name: "Coaches", path: "/academy/coaches" },
+  { icon: <DocsIcon />, name: "Docs", path: "/docs" },
 ];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
-  const [kitchenName, setKitchenName] = useState<string>("");
-  const { plan, role } = useAuth();
+  const [orgName, setOrgName] = useState<string>("");
+  const { plan, role, type } = useAuth();
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main";
     index: number;
   } | null>(null);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
-    {}
-  );
+  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Pick correct nav based on org vertical
+  const vertical = (type || "kitchen").toLowerCase();
+  const navItems: NavItem[] =
+    vertical === "salon"
+      ? salonNavItems
+      : vertical.includes("academy") || vertical === "sports academy"
+      ? academyNavItems
+      : kitchenNavItems;
 
   const isActive = useCallback(
     (path: string) => location.pathname === path,
@@ -101,11 +144,8 @@ const AppSidebar: React.FC = () => {
   );
 
   useEffect(() => {
-    async function fetchKitchenName() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
+    async function fetchOrgName() {
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: profileData, error: profileError } = await supabase
@@ -114,10 +154,7 @@ const AppSidebar: React.FC = () => {
         .eq("id", user.id)
         .single();
 
-      if (profileError || !profileData) {
-        console.error("Error fetching profile:", profileError);
-        return;
-      }
+      if (profileError || !profileData) return;
 
       const { data: orgData, error: orgError } = await supabase
         .from("organizations")
@@ -125,15 +162,10 @@ const AppSidebar: React.FC = () => {
         .eq("id", profileData.organization_id)
         .single();
 
-      if (orgError || !orgData) {
-        console.error("Error fetching organization:", orgError);
-        return;
-      }
-
-      setKitchenName(orgData.name);
+      if (orgError || !orgData) return;
+      setOrgName(orgData.name);
     }
-
-    fetchKitchenName();
+    fetchOrgName();
   }, []);
 
   useEffect(() => {
@@ -142,27 +174,21 @@ const AppSidebar: React.FC = () => {
       if (nav.subItems) {
         nav.subItems.forEach((subItem) => {
           if (isActive(subItem.path)) {
-            setOpenSubmenu({
-              type: "main",
-              index,
-            });
+            setOpenSubmenu({ type: "main", index });
             submenuMatched = true;
           }
         });
       }
     });
-
-    if (!submenuMatched) {
-      setOpenSubmenu(null);
-    }
-  }, [location, isActive]);
+    if (!submenuMatched) setOpenSubmenu(null);
+  }, [location, isActive, navItems]);
 
   useEffect(() => {
     if (openSubmenu !== null) {
       const key = `${openSubmenu.type}-${openSubmenu.index}`;
       if (subMenuRefs.current[key]) {
-        setSubMenuHeight((prevHeights) => ({
-          ...prevHeights,
+        setSubMenuHeight((prev) => ({
+          ...prev,
           [key]: subMenuRefs.current[key]?.scrollHeight || 0,
         }));
       }
@@ -170,176 +196,161 @@ const AppSidebar: React.FC = () => {
   }, [openSubmenu]);
 
   const handleSubmenuToggle = (index: number, menuType: "main") => {
-    setOpenSubmenu((prevOpenSubmenu) => {
-      if (
-        prevOpenSubmenu &&
-        prevOpenSubmenu.type === menuType &&
-        prevOpenSubmenu.index === index
-      ) {
-        return null;
-      }
+    setOpenSubmenu((prev) => {
+      if (prev && prev.type === menuType && prev.index === index) return null;
       return { type: menuType, index };
     });
   };
 
   const renderMenuItems = (items: NavItem[], menuType: "main") => {
-    // Filter items based on plan and role
-    const filteredItems = items.filter(nav => {
-      // Standard plan does not get Talk to your Data
+    const filteredItems = items.filter((nav) => {
       if (plan === "standard" && nav.name === "Talk to your Data!!") return false;
-      // Admin role cannot see Finance, Customers, or Team
       if (role === "admin" && (nav.name === "Finance" || nav.name === "Customers" || nav.name === "Discount Coupons")) return false;
-      // Only owner/superadmin can see Discount Coupons
       if (nav.name === "Discount Coupons" && role !== "owner" && role !== "superadmin") return false;
       return true;
     });
 
     return (
-    <ul className="flex flex-col gap-4">
-      {filteredItems.map((nav, index) => (
-        <li key={nav.name}>
-          {nav.subItems ? (
-            <button
-              onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group ${openSubmenu?.type === menuType && openSubmenu?.index === index
-                ? "menu-item-active"
-                : "menu-item-inactive"
-                } cursor-pointer ${!isExpanded && !isHovered
-                  ? "lg:justify-center"
-                  : "lg:justify-start"
+      <ul className="flex flex-col gap-4">
+        {filteredItems.map((nav, index) => (
+          <li key={nav.name}>
+            {nav.subItems ? (
+              <button
+                onClick={() => handleSubmenuToggle(index, menuType)}
+                className={`menu-item group ${
+                  openSubmenu?.type === menuType && openSubmenu?.index === index
+                    ? "menu-item-active"
+                    : "menu-item-inactive"
+                } cursor-pointer ${
+                  !isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"
                 }`}
-            >
-              <span
-                className={`menu-item-icon-size  ${openSubmenu?.type === menuType && openSubmenu?.index === index
-                  ? "menu-item-icon-active"
-                  : "menu-item-icon-inactive"
-                  }`}
-              >
-                {nav.icon}
-              </span>
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <span className="menu-item-text">{nav.name}</span>
-              )}
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <ChevronDownIcon
-                  className={`ml-auto w-5 h-5 transition-transform duration-200 ${openSubmenu?.type === menuType &&
-                    openSubmenu?.index === index
-                    ? "rotate-180 text-brand-500"
-                    : ""
-                    }`}
-                />
-              )}
-            </button>
-          ) : (
-            nav.path && (
-              <Link
-                to={nav.path}
-                className={`menu-item group ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
-                  }`}
               >
                 <span
-                  className={`menu-item-icon-size ${isActive(nav.path)
-                    ? "menu-item-icon-active"
-                    : "menu-item-icon-inactive"
-                    }`}
+                  className={`menu-item-icon-size ${
+                    openSubmenu?.type === menuType && openSubmenu?.index === index
+                      ? "menu-item-icon-active"
+                      : "menu-item-icon-inactive"
+                  }`}
                 >
                   {nav.icon}
                 </span>
                 {(isExpanded || isHovered || isMobileOpen) && (
                   <span className="menu-item-text">{nav.name}</span>
                 )}
-              </Link>
-            )
-          )}
-          {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
-            <div
-              ref={(el) => {
-                subMenuRefs.current[`${menuType}-${index}`] = el;
-              }}
-              className="overflow-hidden transition-all duration-300"
-              style={{
-                height:
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? `${subMenuHeight[`${menuType}-${index}`]}px`
-                    : "0px",
-              }}
-            >
-              <ul className="mt-2 space-y-1 ml-9">
-                {nav.subItems.map((subItem) => (
-                  <li key={subItem.name}>
-                    <Link
-                      to={subItem.path}
-                      className={`menu-dropdown-item ${isActive(subItem.path)
-                        ? "menu-dropdown-item-active"
-                        : "menu-dropdown-item-inactive"
+                {(isExpanded || isHovered || isMobileOpen) && (
+                  <ChevronDownIcon
+                    className={`ml-auto w-5 h-5 transition-transform duration-200 ${
+                      openSubmenu?.type === menuType && openSubmenu?.index === index
+                        ? "rotate-180 text-brand-500"
+                        : ""
+                    }`}
+                  />
+                )}
+              </button>
+            ) : (
+              nav.path && (
+                <Link
+                  to={nav.path}
+                  className={`menu-item group ${
+                    isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
+                  }`}
+                >
+                  <span
+                    className={`menu-item-icon-size ${
+                      isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"
+                    }`}
+                  >
+                    {nav.icon}
+                  </span>
+                  {(isExpanded || isHovered || isMobileOpen) && (
+                    <span className="menu-item-text">{nav.name}</span>
+                  )}
+                </Link>
+              )
+            )}
+            {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
+              <div
+                ref={(el) => { subMenuRefs.current[`${menuType}-${index}`] = el; }}
+                className="overflow-hidden transition-all duration-300"
+                style={{
+                  height:
+                    openSubmenu?.type === menuType && openSubmenu?.index === index
+                      ? `${subMenuHeight[`${menuType}-${index}`]}px`
+                      : "0px",
+                }}
+              >
+                <ul className="mt-2 space-y-1 ml-9">
+                  {nav.subItems.map((subItem) => (
+                    <li key={subItem.name}>
+                      <Link
+                        to={subItem.path}
+                        className={`menu-dropdown-item ${
+                          isActive(subItem.path)
+                            ? "menu-dropdown-item-active"
+                            : "menu-dropdown-item-inactive"
                         }`}
-                    >
-                      {subItem.name}
-                      <span className="flex items-center gap-1 ml-auto">
-                        {subItem.new && (
-                          <span
-                            className={`ml-auto ${isActive(subItem.path)
-                              ? "menu-dropdown-badge-active"
-                              : "menu-dropdown-badge-inactive"
-                              } menu-dropdown-badge`}
-                          >
-                            new
-                          </span>
-                        )}
-                        {subItem.pro && (
-                          <span
-                            className={`ml-auto ${isActive(subItem.path)
-                              ? "menu-dropdown-badge-active"
-                              : "menu-dropdown-badge-inactive"
-                              } menu-dropdown-badge`}
-                          >
-                            pro
-                          </span>
-                        )}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </li>
-      ))}
-    </ul>
+                      >
+                        {subItem.name}
+                        <span className="flex items-center gap-1 ml-auto">
+                          {subItem.new && (
+                            <span className={`ml-auto ${isActive(subItem.path) ? "menu-dropdown-badge-active" : "menu-dropdown-badge-inactive"} menu-dropdown-badge`}>
+                              new
+                            </span>
+                          )}
+                          {subItem.pro && (
+                            <span className={`ml-auto ${isActive(subItem.path) ? "menu-dropdown-badge-active" : "menu-dropdown-badge-inactive"} menu-dropdown-badge`}>
+                              pro
+                            </span>
+                          )}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
     );
   };
 
+  // Vertical badge label
+  const verticalLabel =
+    vertical === "salon"
+      ? "Salon"
+      : vertical.includes("academy") || vertical === "sports academy"
+      ? "Academy"
+      : "Kitchen";
+
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
-        ${isExpanded || isMobileOpen
-          ? "w-[290px]"
-          : isHovered
-            ? "w-[290px]"
-            : "w-[90px]"
-        }
+      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200
+        ${isExpanded || isMobileOpen ? "w-[290px]" : isHovered ? "w-[290px]" : "w-[90px]"}
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div
-        className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-          }`}
-      >
+      <div className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}>
         <Link to="/dashboard">
           {isExpanded || isHovered || isMobileOpen ? (
             <div className="flex flex-col">
               <span className="text-xl font-bold text-gray-800 dark:text-white/90">
-                {kitchenName}
+                {orgName}
               </span>
-              <span className="text-xs font-semibold text-brand-500 uppercase tracking-wider mt-0.5">
-                {plan} Plan
-              </span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs font-semibold text-brand-500 uppercase tracking-wider">
+                  {plan} Plan
+                </span>
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  · {verticalLabel}
+                </span>
+              </div>
             </div>
           ) : (
             <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-500 text-white text-sm font-bold">
-              {kitchenName?.charAt(0).toUpperCase()}
+              {orgName?.charAt(0).toUpperCase()}
             </span>
           )}
         </Link>
@@ -349,10 +360,9 @@ const AppSidebar: React.FC = () => {
           <div className="flex flex-col gap-4">
             <div>
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
-                  ? "lg:justify-center"
-                  : "justify-start"
-                  }`}
+                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                  !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+                }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
                   "Menu"

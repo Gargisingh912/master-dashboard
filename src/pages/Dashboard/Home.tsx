@@ -1,6 +1,8 @@
 import PageMeta from "../../components/common/PageMeta";
 import GreetingHeader from "./GreetingHeader";
+import { useAuth } from "../../hooks/useAuth";
 
+// Kitchen KPI widgets (existing)
 import IncomingQrOrders from "../../components/ecommerce/Incomingqrorders";
 import LiveOrdersKpiWidget from "../../components/ecommerce/LiveOrdersKpiWidget";
 import QrKpiWidget from "../../components/ecommerce/QrKpiWidget";
@@ -9,19 +11,52 @@ import InventoryKpiWidget from "../../components/ecommerce/InventoryKpiWidget";
 import FinanceKpiWidget from "../../components/ecommerce/FinanceKpiWidget";
 import HighestSellingDishes from "../../components/ecommerce/HighestSellingDishes";
 
+// New vertical overview pages
+import SalonOverview from "../../components/salon/SalonOverview";
+import AcademyOverview from "../../components/academy/AcademyOverview";
+
 export default function Home() {
+  const { type } = useAuth();
+  const vertical = (type || "kitchen").toLowerCase();
+
+  if (vertical === "salon") {
+    return (
+      <>
+        <PageMeta
+          title="Salon Dashboard"
+          description="Salon operations overview — appointments, revenue, staff"
+        />
+        <GreetingHeader />
+        <SalonOverview />
+      </>
+    );
+  }
+
+  if (vertical.includes("academy") || vertical === "sports academy") {
+    return (
+      <>
+        <PageMeta
+          title="Academy Dashboard"
+          description="Academy operations overview — fees, students, attendance"
+        />
+        <GreetingHeader />
+        <AcademyOverview />
+      </>
+    );
+  }
+
+  // Default: Kitchen vertical
   return (
     <>
       <PageMeta
         title="Master-Dashboard"
         description="one stop solution for your data operations"
       />
-      
       <GreetingHeader />
 
       {/* Bento Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 mb-20">
-        
+
         {/* Alerts / Full width pop-ins */}
         <div className="lg:col-span-12">
           <IncomingQrOrders />

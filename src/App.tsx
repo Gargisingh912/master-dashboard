@@ -34,6 +34,20 @@ import SuperAdminPage from "./components/SuperAdminPage";
 import QRCodePage from "./pages/Dashboard/QRCodePage";
 import OrderPage from "./pages/public/OrderPage";
 
+// Salon pages
+import SalonAppointments from "./pages/salon/SalonAppointments";
+import SalonServices from "./pages/salon/SalonServices";
+import SalonStaff from "./pages/salon/SalonStaff";
+import SalonPackages from "./pages/salon/SalonPackages";
+import SalonBilling from "./pages/salon/SalonBilling";
+
+// Academy pages
+import AcademyCoaches from "./pages/academy/AcademyCoaches";
+import AcademyBatches from "./pages/academy/AcademyBatches";
+import AcademyStudents from "./pages/academy/AcademyStudents";
+import AcademyAttendance from "./pages/academy/AcademyAttendance";
+import AcademyFees from "./pages/academy/AcademyFees";
+
 
 export default function App() {
   return (
@@ -56,13 +70,31 @@ export default function App() {
 
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
+            {/* Shared / vertical-dispatched dashboard */}
             <Route path="/dashboard" element={<Home />} />
             <Route path="/dashboard/:type" element={<Home />} />
+
+            {/* Kitchen vertical */}
             <Route path="/menu" element={<Menu />} />
             <Route path="/qr-code" element={<QRCodePage />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/finance" element={<Finance />} />
             <Route path="/coupons" element={<DiscountCoupons />} />
+
+            {/* Salon vertical */}
+            <Route path="/salon/appointments" element={<SalonAppointments />} />
+            <Route path="/salon/services" element={<SalonServices />} />
+            <Route path="/salon/staff" element={<SalonStaff />} />
+            <Route path="/salon/packages" element={<SalonPackages />} />
+            <Route path="/salon/billing" element={<SalonBilling />} />
+            {/* Salon also reuses /inventory and /customer-tables */}
+
+            {/* Academy vertical */}
+            <Route path="/academy/coaches" element={<AcademyCoaches />} />
+            <Route path="/academy/batches" element={<AcademyBatches />} />
+            <Route path="/academy/students" element={<AcademyStudents />} />
+            <Route path="/academy/attendance" element={<AcademyAttendance />} />
+            <Route path="/academy/fees" element={<AcademyFees />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />

@@ -89,3 +89,40 @@ export interface ExpenseRow {
   date: string;
   created_at: string;
 }
+
+export interface AcademyCoachRow {
+  id: string;
+  organization_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  created_at: string;
+}
+
+export interface AcademyStudentRow {
+  id: string;
+  organization_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  dob: string | null;
+  created_at: string;
+}
+
+export interface AcademyClassRow {
+  id: string;
+  organization_id: string;
+  name: string;
+  description: string | null;
+  coach_id: string | null;
+  schedule: string | null; // JSON or text representation of schedule
+  created_at: string;
+}
+
+export interface AcademyEnrollmentRow {
+  id: string;
+  student_id: string;
+  class_id: string;
+  enrollment_date: string;
+  created_at: string;
+}   
