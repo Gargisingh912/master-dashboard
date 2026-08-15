@@ -144,7 +144,7 @@ export default function SalonServices() {
               {/* Product usage rows — mirrors menu_ingredients UI */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Product Usage (Deducted on Completion)</label>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Equipment/Cosmetics Used (Deducted on Completion)</label>
                   <button type="button" onClick={addProductRow} className="text-xs text-brand-500 hover:text-brand-600 font-semibold flex items-center gap-1"><Plus size={12} /> Add</button>
                 </div>
                 {form.products.map((p, i) => (

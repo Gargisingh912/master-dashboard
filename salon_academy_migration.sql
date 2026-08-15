@@ -9,6 +9,11 @@
 
 
 -- ============================================================================
+-- PRE-REQUISITES (Base tables)
+-- ============================================================================
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS open_hours JSONB;
+
+-- ============================================================================
 -- SALON TABLES
 -- ============================================================================
 
@@ -59,6 +64,7 @@ CREATE TABLE IF NOT EXISTS salon_appointments (
     status            TEXT NOT NULL DEFAULT 'Booked',
         -- Booked | InProgress | Completed | NoShow | Cancelled
     notes             TEXT,
+    is_qr_booked      BOOLEAN DEFAULT FALSE,
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -122,8 +128,10 @@ CREATE TABLE IF NOT EXISTS academy_coaches (
     name              TEXT NOT NULL,
     phone             TEXT,
     specialization    TEXT,
+    photo_url         TEXT,
     is_active         BOOLEAN NOT NULL DEFAULT true,
-    created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- 10. academy_batches
@@ -156,7 +164,23 @@ CREATE TABLE IF NOT EXISTS academy_students (
     batch_id          UUID REFERENCES academy_batches(id) ON DELETE SET NULL,
     enrolled_at       DATE NOT NULL DEFAULT CURRENT_DATE,
     is_active         BOOLEAN NOT NULL DEFAULT true,
-    created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+    performance_rating NUMERIC(3,1),
+    performance_notes TEXT,
+    photo_url         TEXT,
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 11.5 salon_staff_attendance
+CREATE TABLE IF NOT EXISTS salon_staff_attendance (
+    id              UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    staff_id        UUID NOT NULL REFERENCES salon_staff(id) ON DELETE CASCADE,
+    session_date    DATE NOT NULL,
+    status          TEXT NOT NULL DEFAULT 'present',  -- present | absent | late
+    notes           TEXT,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (staff_id, session_date)
 );
 
 -- 12. academy_attendance (no organization_id — scoped via academy_batches)
@@ -194,6 +218,8 @@ CREATE INDEX IF NOT EXISTS idx_salon_svc_products_inv       ON salon_service_pro
 CREATE INDEX IF NOT EXISTS idx_salon_appointments_org       ON salon_appointments(organization_id);
 CREATE INDEX IF NOT EXISTS idx_salon_appointments_date      ON salon_appointments(appointment_date DESC);
 CREATE INDEX IF NOT EXISTS idx_salon_appointments_staff     ON salon_appointments(staff_id);
+CREATE INDEX IF NOT EXISTS idx_salon_staff_attendance_org   ON salon_staff_attendance(organization_id);
+CREATE INDEX IF NOT EXISTS idx_salon_staff_attendance_staff ON salon_staff_attendance(staff_id);
 CREATE INDEX IF NOT EXISTS idx_salon_packages_org           ON salon_packages(organization_id);
 CREATE INDEX IF NOT EXISTS idx_salon_redemptions_pkg        ON salon_package_redemptions(package_id);
 CREATE INDEX IF NOT EXISTS idx_salon_bills_org              ON salon_bills(organization_id);
@@ -216,6 +242,7 @@ ALTER TABLE salon_staff                 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE salon_services              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE salon_service_products      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE salon_appointments          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE salon_staff_attendance      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE salon_packages              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE salon_package_redemptions   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE salon_bills                 ENABLE ROW LEVEL SECURITY;
@@ -266,6 +293,13 @@ CREATE POLICY "org members manage salon service products"
 DROP POLICY IF EXISTS "org members manage salon appointments" ON salon_appointments;
 CREATE POLICY "org members manage salon appointments"
     ON salon_appointments FOR ALL
+    USING  (organization_id = public.current_user_org_id())
+    WITH CHECK (organization_id = public.current_user_org_id());
+
+-- ── salon_staff_attendance ─────────────────────────────────────────────
+DROP POLICY IF EXISTS "org members manage salon staff attendance" ON salon_staff_attendance;
+CREATE POLICY "org members manage salon staff attendance"
+    ON salon_staff_attendance FOR ALL
     USING  (organization_id = public.current_user_org_id())
     WITH CHECK (organization_id = public.current_user_org_id());
 
@@ -370,6 +404,7 @@ ALTER TABLE salon_staff               REPLICA IDENTITY FULL;
 ALTER TABLE salon_services            REPLICA IDENTITY FULL;
 ALTER TABLE salon_service_products    REPLICA IDENTITY FULL;
 ALTER TABLE salon_appointments        REPLICA IDENTITY FULL;
+ALTER TABLE salon_staff_attendance    REPLICA IDENTITY FULL;
 ALTER TABLE salon_packages            REPLICA IDENTITY FULL;
 ALTER TABLE salon_package_redemptions REPLICA IDENTITY FULL;
 ALTER TABLE salon_bills               REPLICA IDENTITY FULL;
@@ -388,6 +423,7 @@ DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE salon_staff;          
 DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE salon_services;             EXCEPTION WHEN OTHERS THEN NULL; END $$;
 DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE salon_service_products;     EXCEPTION WHEN OTHERS THEN NULL; END $$;
 DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE salon_appointments;         EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE salon_staff_attendance;     EXCEPTION WHEN OTHERS THEN NULL; END $$;
 DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE salon_packages;             EXCEPTION WHEN OTHERS THEN NULL; END $$;
 DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE salon_package_redemptions;  EXCEPTION WHEN OTHERS THEN NULL; END $$;
 DO $$ BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE salon_bills;                EXCEPTION WHEN OTHERS THEN NULL; END $$;

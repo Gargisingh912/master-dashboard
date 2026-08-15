@@ -1,10 +1,11 @@
 import { useMemo } from "react";
 import { Link } from "react-router";
 import { useSalon } from "../../context/SalonContext";
-import { Calendar, TrendingUp, Users, Clock, Star, AlertTriangle } from "lucide-react";
+import { Calendar, TrendingUp, Users, Star, AlertTriangle } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHeader, TableRow,
-} from "../ui/table";
+} from "../../components/ui/table";
+import IncomingQrAppointments from "../../components/salon/IncomingQrAppointments";
 
 export default function SalonOverview() {
   const { appointments, staff, services, bills, loading } = useSalon();
@@ -82,6 +83,14 @@ export default function SalonOverview() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 mb-20">
 
+      {/* Incoming QR appointments — mounted at the top of the Salon dashboard
+          tab, mirroring KitchenAlertBell/IncomingQrOrders on the kitchen
+          side. This is what triggers the continuous alarm while QR-booked
+          appointments are waiting on staff accept/decline. */}
+      <div className="lg:col-span-12">
+        <IncomingQrAppointments />
+      </div>
+
       {/* 1. Today's Appointments — top, full width */}
       <div className="lg:col-span-12">
         <Link to="/salon/appointments" className="block rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-white/[0.03] p-5 md:p-6 group hover:border-brand-300 dark:hover:border-brand-500/40 hover:shadow-lg transition-all">
@@ -97,22 +106,22 @@ export default function SalonOverview() {
             </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 group-hover:text-brand-500 transition-colors"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
           </div>
-          <div className="grid grid-cols-4 gap-3 text-center">
-            <div className="rounded-2xl bg-brand-50/80 dark:bg-brand-500/10 border border-brand-100 dark:border-brand-500/20 p-4">
-              <span className="text-[10px] sm:text-xs text-brand-600 dark:text-brand-400 font-semibold uppercase tracking-wider block mb-1">Booked</span>
-              <p className="text-2xl sm:text-3xl font-black text-brand-700 dark:text-brand-300">{kpis.booked}</p>
+          <div className="grid grid-cols-4 gap-4 text-center">
+            <div className="rounded-xl bg-gray-50 p-4 dark:bg-white/5">
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider block mb-1">Booked</span>
+              <p className="mt-1 text-2xl font-bold text-gray-800 dark:text-white/90">{kpis.booked}</p>
             </div>
-            <div className="rounded-2xl bg-warning-50/80 dark:bg-warning-500/10 border border-warning-100 dark:border-warning-500/20 p-4">
-              <span className="text-[10px] sm:text-xs text-warning-600 dark:text-warning-400 font-semibold uppercase tracking-wider block mb-1">In Progress</span>
-              <p className="text-2xl sm:text-3xl font-black text-warning-700 dark:text-warning-300">{kpis.inProgress}</p>
+            <div className="rounded-xl bg-warning-50 p-4 dark:bg-warning-500/10">
+              <span className="text-xs text-warning-600 dark:text-warning-400 font-medium uppercase tracking-wider block mb-1">In Progress</span>
+              <p className="mt-1 text-2xl font-bold text-warning-700 dark:text-warning-300">{kpis.inProgress}</p>
             </div>
-            <div className="rounded-2xl bg-success-50/80 dark:bg-success-500/10 border border-success-100 dark:border-success-500/20 p-4">
-              <span className="text-[10px] sm:text-xs text-success-600 dark:text-success-400 font-semibold uppercase tracking-wider block mb-1">Completed</span>
-              <p className="text-2xl sm:text-3xl font-black text-success-700 dark:text-success-300">{kpis.completed}</p>
+            <div className="rounded-xl bg-success-50 p-4 dark:bg-success-500/10">
+              <span className="text-xs text-success-600 dark:text-success-400 font-medium uppercase tracking-wider block mb-1">Completed</span>
+              <p className="mt-1 text-2xl font-bold text-success-700 dark:text-success-300">{kpis.completed}</p>
             </div>
-            <div className="rounded-2xl bg-red-50/80 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 p-4">
-              <span className="text-[10px] sm:text-xs text-red-600 dark:text-red-400 font-semibold uppercase tracking-wider block mb-1">No-Show</span>
-              <p className="text-2xl sm:text-3xl font-black text-red-700 dark:text-red-300">{kpis.noShow}</p>
+            <div className="rounded-xl bg-red-50 p-4 dark:bg-red-500/10">
+              <span className="text-xs text-red-600 dark:text-red-400 font-medium uppercase tracking-wider block mb-1">No-Show</span>
+              <p className="mt-1 text-2xl font-bold text-red-700 dark:text-red-300">{kpis.noShow}</p>
             </div>
           </div>
         </Link>

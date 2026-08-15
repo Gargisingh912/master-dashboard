@@ -1,19 +1,39 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { LayoutDashboard, Utensils, Package, Wallet, User } from "lucide-react";
+import { LayoutDashboard, Utensils, Package, Wallet, User, CalendarDays, Banknote, Users, Scissors, Receipt } from "lucide-react";
 import { supabase } from "../config/supabase";
-
-const navItems = [
-  { name: "Overview", path: "/dashboard", icon: LayoutDashboard },
-  { name: "Menu", path: "/menu", icon: Utensils },
-  { name: "Inventory", path: "/inventory", icon: Package },
-  { name: "Finances", path: "/finance", icon: Wallet },
-  { name: "Profile", path: "/profile", icon: User },
-];
+import { useAuth } from "../hooks/useAuth";
 
 export default function FloatingNav() {
   const location = useLocation();
   const [kitchenName, setKitchenName] = useState<string>("");
+  const { type } = useAuth();
+
+  const vertical = (type || "kitchen").toLowerCase();
+  const isAcademy = vertical.includes("academy") || vertical === "sports academy";
+  const isSalon = vertical === "salon";
+
+  const navItems = isSalon
+    ? [
+        { name: "Overview", path: "/dashboard", icon: LayoutDashboard },
+        { name: "Services", path: "/salon/services", icon: Scissors },
+        { name: "Staff", path: "/salon/staff", icon: Users },
+        { name: "Billing", path: "/salon/billing", icon: Receipt },
+        { name: "Profile", path: "/profile", icon: User },
+      ]
+    : [
+        { name: "Overview", path: "/dashboard", icon: LayoutDashboard },
+        isAcademy
+          ? { name: "Batch Scheduling", path: "/academy/batches", icon: CalendarDays }
+          : { name: "Menu", path: "/menu", icon: Utensils },
+        isAcademy
+          ? { name: "Fee Management", path: "/academy/fees", icon: Banknote }
+          : { name: "Inventory", path: "/inventory", icon: Package },
+        isAcademy
+          ? { name: "Student Profiles", path: "/academy/students", icon: Users }
+          : { name: "Finances", path: "/finance", icon: Wallet },
+        { name: "Profile", path: "/profile", icon: User },
+      ];
 
   useEffect(() => {
     async function fetchKitchenName() {

@@ -2,8 +2,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../config/supabase";
 import { Plus } from "lucide-react";
 import CreateOrderModal from "../../components/ecommerce/CreateOrderModal";
+import CreateAppointmentModal from "../../components/salon/CreateAppointmentModal";
+import { useAuth } from "../../hooks/useAuth";
+import StudentAdmissionModal from "../../components/academy/StudentAdmissionModal";
 
 export default function GreetingHeader() {
+  const { type } = useAuth();
+  const vertical = (type || "kitchen").toLowerCase();
+  const isAcademy = vertical.includes("academy") || vertical === "sports academy";
+
   const [userName, setUserName] = useState<string>("User");
   const [kitchenName, setKitchenName] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -76,14 +83,26 @@ export default function GreetingHeader() {
           className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-brand-500 text-white rounded-xl font-semibold hover:bg-brand-600 transition-all shadow-[0_4px_14px_0_rgba(70,95,255,0.39)] hover:shadow-[0_6px_20px_rgba(70,95,255,0.23)] hover:-translate-y-0.5 active:translate-y-0 text-sm sm:text-base"
         >
           <Plus size={18} strokeWidth={3} className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
-          <span>Take Order</span>
+          <span>{isAcademy ? "Admit Student" : vertical === "salon" ? "New Appointment" : "Take Order"}</span>
         </button>
       </div>
 
-      <CreateOrderModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-      />
+      {isAcademy ? (
+        <StudentAdmissionModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+        />
+      ) : vertical === "salon" ? (
+        <CreateAppointmentModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+        />
+      ) : (
+        <CreateOrderModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+        />
+      )}
     </div>
   );
 }

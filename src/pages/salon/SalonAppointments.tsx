@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import { useSalon, SalonAppointment } from "../../context/SalonContext";
-import { Calendar, Clock, User, Phone, CheckCircle, XCircle, AlertCircle, Loader } from "lucide-react";
+import { Calendar, Clock, User, Phone } from "lucide-react";
 
 const STATUS_OPTIONS = ["Booked", "InProgress", "Completed", "NoShow", "Cancelled"];
 
@@ -11,14 +11,6 @@ const STATUS_STYLES: Record<string, string> = {
   Completed: "bg-success-50 text-success-600 dark:bg-success-500/10 dark:text-success-400",
   NoShow: "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400",
   Cancelled: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
-};
-
-const STATUS_ICONS: Record<string, React.ReactNode> = {
-  Booked: <Calendar size={12} />,
-  InProgress: <Loader size={12} />,
-  Completed: <CheckCircle size={12} />,
-  NoShow: <AlertCircle size={12} />,
-  Cancelled: <XCircle size={12} />,
 };
 
 const emptyForm = {
@@ -150,12 +142,6 @@ export default function SalonAppointments() {
             {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
-        <button
-          onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
-          className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-sm font-semibold transition-colors"
-        >
-          <span className="text-lg">+</span> New Appointment
-        </button>
       </div>
 
       {/* Add / Edit Form */}
@@ -305,6 +291,13 @@ export default function SalonAppointments() {
           </div>
         )}
       </div>
+
+      <button
+        onClick={() => { setShowForm(true); setEditingId(null); setForm(emptyForm); }}
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-brand-500 px-5 py-3.5 text-sm font-semibold text-white shadow-lg hover:bg-brand-600 hover:shadow-xl transition-all"
+      >
+        <span className="text-lg leading-none">+</span> Appointment
+      </button>
     </>
   );
 }

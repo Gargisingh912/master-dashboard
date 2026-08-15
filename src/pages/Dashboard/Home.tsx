@@ -12,7 +12,7 @@ import FinanceKpiWidget from "../../components/ecommerce/FinanceKpiWidget";
 import HighestSellingDishes from "../../components/ecommerce/HighestSellingDishes";
 
 // New vertical overview pages
-import SalonOverview from "../../components/salon/SalonOverview";
+import SalonOverview from "./SalonOverview";
 import AcademyOverview from "../../components/academy/AcademyOverview";
 
 export default function Home() {

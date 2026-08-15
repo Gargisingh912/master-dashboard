@@ -33,6 +33,7 @@ import RequireSuperAdmin from "./components/RequireSuperAdmin";
 import SuperAdminPage from "./components/SuperAdminPage";
 import QRCodePage from "./pages/Dashboard/QRCodePage";
 import OrderPage from "./pages/public/OrderPage";
+import SalonBookingPage from "./pages/public/SalonBookingPage";
 
 // Salon pages
 import SalonAppointments from "./pages/salon/SalonAppointments";
@@ -62,6 +63,10 @@ export default function App() {
           <Route path="/free-trial" element={<FreeTrialPage />} />
           <Route path="/order/:organizationId" element={<OrderPage />} />
           <Route path="/order/:slug/:organizationId" element={<OrderPage />} />
+          
+          {/* Salon Public Routes */}
+          <Route path="/salon-booking/:organizationId" element={<SalonBookingPage />} />
+          <Route path="/salon-booking/:slug/:organizationId" element={<SalonBookingPage />} />
 
           {/* Superadmin — standalone, guarded */}
           <Route element={<RequireSuperAdmin />}>

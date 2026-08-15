@@ -7,6 +7,7 @@ export interface AcademyCoach {
   name: string;
   phone?: string;
   specialization?: string;
+  photoUrl?: string;
   isActive: boolean;
 }
 
@@ -35,6 +36,9 @@ export interface AcademyStudent {
   batchId?: string;
   enrolledAt: string;
   isActive: boolean;
+  performanceRating?: number;
+  performanceNotes?: string;
+  photoUrl?: string;
 }
 
 export interface AcademyAttendanceRecord {
@@ -134,7 +138,7 @@ export const AcademyProvider: React.FC<{ children: ReactNode }> = ({ children })
         .eq("organization_id", currentOrgId);
       if (coachError) console.error("Coaches fetch error:", coachError);
       setCoaches((coachData || []).map((c: any) => ({
-        id: c.id, name: c.name, phone: c.phone ?? undefined, specialization: c.specialization ?? undefined, isActive: c.is_active,
+        id: c.id, name: c.name, phone: c.phone ?? undefined, specialization: c.specialization ?? undefined, photoUrl: c.photo_url ?? undefined, isActive: c.is_active,
       })));
 
       const { data: batchData, error: batchError } = await supabase
@@ -172,6 +176,9 @@ export const AcademyProvider: React.FC<{ children: ReactNode }> = ({ children })
         batchId: s.batch_id ?? undefined,
         enrolledAt: s.enrolled_at,
         isActive: s.is_active,
+        performanceRating: s.performance_rating ?? undefined,
+        performanceNotes: s.performance_notes ?? undefined,
+        photoUrl: s.photo_url ?? undefined,
       })));
 
       // Attendance has no organization_id column — scope via batch ids we just fetched
@@ -219,12 +226,12 @@ export const AcademyProvider: React.FC<{ children: ReactNode }> = ({ children })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "academy_coaches", filter: `organization_id=eq.${orgId}` },
         (payload) => {
           const r = payload.new as any;
-          setCoaches(prev => prev.find(c => c.id === r.id) ? prev : [...prev, { id: r.id, name: r.name, phone: r.phone ?? undefined, specialization: r.specialization ?? undefined, isActive: r.is_active }]);
+          setCoaches(prev => prev.find(c => c.id === r.id) ? prev : [...prev, { id: r.id, name: r.name, phone: r.phone ?? undefined, specialization: r.specialization ?? undefined, photoUrl: r.photo_url ?? undefined, isActive: r.is_active }]);
         })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "academy_coaches", filter: `organization_id=eq.${orgId}` },
         (payload) => {
           const r = payload.new as any;
-          setCoaches(prev => prev.map(c => c.id === r.id ? { id: r.id, name: r.name, phone: r.phone ?? undefined, specialization: r.specialization ?? undefined, isActive: r.is_active } : c));
+          setCoaches(prev => prev.map(c => c.id === r.id ? { id: r.id, name: r.name, phone: r.phone ?? undefined, specialization: r.specialization ?? undefined, photoUrl: r.photo_url ?? undefined, isActive: r.is_active } : c));
         })
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "academy_coaches" },
         (payload) => setCoaches(prev => prev.filter(c => c.id !== (payload.old as any).id)))
@@ -245,6 +252,8 @@ export const AcademyProvider: React.FC<{ children: ReactNode }> = ({ children })
             id: r.id, name: r.name, contact: r.contact ?? undefined, email: r.email ?? undefined, dob: r.dob ?? undefined,
             guardianName: r.guardian_name ?? undefined, guardianContact: r.guardian_contact ?? undefined,
             batchId: r.batch_id ?? undefined, enrolledAt: r.enrolled_at, isActive: r.is_active,
+            performanceRating: r.performance_rating ?? undefined, performanceNotes: r.performance_notes ?? undefined,
+            photoUrl: r.photo_url ?? undefined,
           };
           setStudents(prev => prev.find(s => s.id === r.id) ? prev : [...prev, newStudent]);
         })
@@ -255,6 +264,8 @@ export const AcademyProvider: React.FC<{ children: ReactNode }> = ({ children })
             ...s, name: r.name, contact: r.contact ?? undefined, email: r.email ?? undefined, dob: r.dob ?? undefined,
             guardianName: r.guardian_name ?? undefined, guardianContact: r.guardian_contact ?? undefined,
             batchId: r.batch_id ?? undefined, isActive: r.is_active,
+            performanceRating: r.performance_rating ?? undefined, performanceNotes: r.performance_notes ?? undefined,
+            photoUrl: r.photo_url ?? undefined,
           } : s));
         })
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "academy_students" },
@@ -305,7 +316,7 @@ export const AcademyProvider: React.FC<{ children: ReactNode }> = ({ children })
   const addCoach = async (c: Omit<AcademyCoach, "id">) => {
     if (!orgId) { setError("No organization context — please log in again."); return; }
     const { data, error } = await supabase.from("academy_coaches").insert({
-      organization_id: orgId, name: c.name, phone: c.phone || null, specialization: c.specialization || null, is_active: c.isActive,
+      organization_id: orgId, name: c.name, phone: c.phone || null, specialization: c.specialization || null, photo_url: c.photoUrl || null, is_active: c.isActive,
     }).select().single();
     if (error) { console.error(error); setError(error.message); return; }
     setCoaches(prev => [...prev, { ...c, id: data.id }]);
@@ -316,6 +327,7 @@ export const AcademyProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (updates.name !== undefined) payload.name = updates.name;
     if (updates.phone !== undefined) payload.phone = updates.phone || null;
     if (updates.specialization !== undefined) payload.specialization = updates.specialization || null;
+    if (updates.photoUrl !== undefined) payload.photo_url = updates.photoUrl || null;
     if (updates.isActive !== undefined) payload.is_active = updates.isActive;
     const { error } = await supabase.from("academy_coaches").update(payload).eq("id", id);
     if (error) { console.error(error); setError(error.message); return; }
@@ -370,6 +382,7 @@ export const AcademyProvider: React.FC<{ children: ReactNode }> = ({ children })
       organization_id: orgId, name: s.name, contact: s.contact || null, email: s.email || null, dob: s.dob || null,
       guardian_name: s.guardianName || null, guardian_contact: s.guardianContact || null, batch_id: s.batchId || null,
       enrolled_at: s.enrolledAt, is_active: s.isActive,
+      performance_rating: s.performanceRating || null, performance_notes: s.performanceNotes || null, photo_url: s.photoUrl || null,
     }).select().single();
     if (error) { console.error(error); setError(error.message); return; }
     setStudents(prev => [...prev, { ...s, id: data.id }]);
@@ -385,6 +398,9 @@ export const AcademyProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (updates.guardianContact !== undefined) payload.guardian_contact = updates.guardianContact || null;
     if (updates.batchId !== undefined) payload.batch_id = updates.batchId || null;
     if (updates.isActive !== undefined) payload.is_active = updates.isActive;
+    if (updates.performanceRating !== undefined) payload.performance_rating = updates.performanceRating || null;
+    if (updates.performanceNotes !== undefined) payload.performance_notes = updates.performanceNotes || null;
+    if (updates.photoUrl !== undefined) payload.photo_url = updates.photoUrl || null;
     const { error } = await supabase.from("academy_students").update(payload).eq("id", id);
     if (error) { console.error(error); setError(error.message); return; }
     setStudents(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import { useAcademy, AcademyCoach } from "../../context/AcademyContext";
-import { User, Phone, Award, Plus, Pencil, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
+import { Phone, Award, Plus, Pencil, Trash2, ToggleLeft, ToggleRight, Camera, Loader2 } from "lucide-react";
+import { supabase } from "../../config/supabase";
 
-const emptyForm = { name: "", phone: "", specialization: "", isActive: true };
+const emptyForm = { name: "", phone: "", specialization: "", photoUrl: "", isActive: true };
 
 export default function AcademyCoaches() {
   const { coaches, batches, addCoach, updateCoach, deleteCoach, loading } = useAcademy();
@@ -11,6 +12,7 @@ export default function AcademyCoaches() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const batchesForCoach = (coachId: string) =>
@@ -26,6 +28,7 @@ export default function AcademyCoaches() {
           name: form.name,
           phone: form.phone || undefined,
           specialization: form.specialization || undefined,
+          photoUrl: form.photoUrl || undefined,
           isActive: form.isActive,
         });
       } else {
@@ -33,6 +36,7 @@ export default function AcademyCoaches() {
           name: form.name,
           phone: form.phone || undefined,
           specialization: form.specialization || undefined,
+          photoUrl: form.photoUrl || undefined,
           isActive: form.isActive,
         });
       }
@@ -47,9 +51,31 @@ export default function AcademyCoaches() {
   };
 
   const startEdit = (c: AcademyCoach) => {
-    setForm({ name: c.name, phone: c.phone || "", specialization: c.specialization || "", isActive: c.isActive });
+    setForm({ name: c.name, phone: c.phone || "", specialization: c.specialization || "", photoUrl: c.photoUrl || "", isActive: c.isActive });
     setEditingId(c.id);
     setShowForm(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `coaches/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage.from('academy-photos').upload(filePath, file);
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('academy-photos').getPublicUrl(filePath);
+      setForm(f => ({ ...f, photoUrl: data.publicUrl }));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload image. Ensure the 'academy-photos' bucket exists and is public.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const initials = (name: string) => name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
@@ -80,6 +106,21 @@ export default function AcademyCoaches() {
             <h3 className="text-lg font-bold text-gray-800 dark:text-white/90 mb-5">{editingId ? "Edit Coach" : "Add Coach"}</h3>
             {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="flex justify-center mb-6">
+                <label className="relative flex flex-col items-center justify-center w-24 h-24 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 cursor-pointer overflow-hidden transition-colors group">
+                  {form.photoUrl ? (
+                    <img src={form.photoUrl} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <Camera size={24} className="text-gray-400 group-hover:text-brand-500" />
+                  )}
+                  {uploading && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <Loader2 size={24} className="text-white animate-spin" />
+                    </div>
+                  )}
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
+                </label>
+              </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1">Full Name *</label>
                 <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -120,8 +161,8 @@ export default function AcademyCoaches() {
             return (
               <div key={c.id} className={`rounded-2xl border-2 p-5 bg-white dark:bg-white/[0.03] transition-all ${c.isActive ? "border-gray-200 dark:border-gray-800" : "border-dashed border-gray-200 dark:border-gray-800 opacity-60"}`}>
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`flex items-center justify-center w-12 h-12 rounded-2xl ${avatarColor} text-white font-bold text-lg`}>
-                    {initials(c.name)}
+                  <div className={`flex items-center justify-center w-12 h-12 rounded-2xl ${c.photoUrl ? '' : avatarColor} text-white font-bold text-lg overflow-hidden`}>
+                    {c.photoUrl ? <img src={c.photoUrl} alt={c.name} className="w-full h-full object-cover" /> : initials(c.name)}
                   </div>
                   <div className="flex items-center gap-1">
                     <button onClick={() => startEdit(c)} className="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-500/10 transition-colors"><Pencil size={13} /></button>

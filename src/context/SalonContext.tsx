@@ -38,6 +38,7 @@ export interface SalonAppointment {
   status: string; // Booked | InProgress | Completed | NoShow | Cancelled
   notes?: string;
   createdAt: string;
+  isQrBooked: boolean;
 }
 
 export interface SalonPackage {
@@ -98,7 +99,7 @@ interface SalonContextType {
   deleteService: (id: string) => Promise<void>;
   setServiceAvailability: (id: string, isActive: boolean) => Promise<void>;
 
-  addAppointment: (a: Omit<SalonAppointment, "id" | "status" | "createdAt">) => Promise<void>;
+  addAppointment: (a: Omit<SalonAppointment, "id" | "status" | "createdAt" | "isQrBooked">) => Promise<void>;
   updateAppointmentStatus: (id: string, status: string) => Promise<void>;
   updateAppointment: (id: string, updates: Partial<Omit<SalonAppointment, "id" | "createdAt">>) => Promise<void>;
   deleteAppointment: (id: string) => Promise<void>;
@@ -200,6 +201,7 @@ export const SalonProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         status: a.status,
         notes: a.notes ?? undefined,
         createdAt: a.created_at,
+        isQrBooked: a.is_qr_booked ?? false,
       })));
 
       const { data: pkgData, error: pkgError } = await supabase
@@ -299,7 +301,8 @@ export const SalonProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           const newAppt: SalonAppointment = {
             id: r.id, customerName: r.customer_name, customerContact: r.customer_contact ?? undefined,
             staffId: r.staff_id ?? undefined, serviceId: r.service_id ?? undefined, appointmentDate: r.appointment_date,
-            startTime: r.start_time, endTime: r.end_time ?? undefined, status: r.status, notes: r.notes ?? undefined, createdAt: r.created_at,
+            startTime: r.start_time, endTime: r.end_time ?? undefined, status: r.status, notes: r.notes ?? undefined,
+            createdAt: r.created_at, isQrBooked: r.is_qr_booked ?? false,
           };
           setAppointments(prev => prev.find(a => a.id === r.id) ? prev : [newAppt, ...prev]);
         })
@@ -308,7 +311,8 @@ export const SalonProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           const r = payload.new as any;
           setAppointments(prev => prev.map(a => a.id === r.id ? {
             ...a, status: r.status, staffId: r.staff_id ?? undefined, serviceId: r.service_id ?? undefined,
-            appointmentDate: r.appointment_date, startTime: r.start_time, endTime: r.end_time ?? undefined, notes: r.notes ?? undefined,
+            appointmentDate: r.appointment_date, startTime: r.start_time, endTime: r.end_time ?? undefined,
+            notes: r.notes ?? undefined, isQrBooked: r.is_qr_booked ?? a.isQrBooked,
           } : a));
         })
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "salon_appointments" },
@@ -411,7 +415,7 @@ export const SalonProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   // ── Appointments ─────────────────────────────────────────────────────────────
-  const addAppointment = async (a: Omit<SalonAppointment, "id" | "status" | "createdAt">) => {
+  const addAppointment = async (a: Omit<SalonAppointment, "id" | "status" | "createdAt" | "isQrBooked">) => {
     if (!orgId) { setError("No organization context — please log in again."); return; }
     const { data, error } = await supabase.from("salon_appointments").insert({
       organization_id: orgId,
@@ -424,9 +428,11 @@ export const SalonProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       end_time: a.endTime || null,
       status: "Booked",
       notes: a.notes || null,
+      // is_qr_booked intentionally omitted — defaults to FALSE in the DB
+      // for staff-created walk-ins, mirroring the kitchen's orderCode pattern.
     }).select().single();
     if (error) { console.error(error); setError(error.message); return; }
-    setAppointments(prev => [{ ...a, id: data.id, status: "Booked", createdAt: data.created_at }, ...prev]);
+    setAppointments(prev => [{ ...a, id: data.id, status: "Booked", createdAt: data.created_at, isQrBooked: false }, ...prev]);
   };
 
   const updateAppointment = async (id: string, updates: Partial<Omit<SalonAppointment, "id" | "createdAt">>) => {

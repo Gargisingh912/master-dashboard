@@ -41,7 +41,6 @@ export default function SalonBilling() {
         if (svc) { item.unitPrice = svc.price; }
       }
       if (field === "inventoryItemId" && value) {
-        const inv = inventory.find(i => i.id === value);
         // inventory items don't have price, keep manual entry
       }
       item.lineTotal = item.quantity * item.unitPrice;
