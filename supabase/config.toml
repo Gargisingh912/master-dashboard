@@ -423,3 +423,25 @@ entrypoint = "./functions/push/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/push/*.html" ]
+
+[functions.embed-documents]
+enabled = true
+verify_jwt = false
+import_map = "./functions/embed-documents/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/embed-documents/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/embed-documents/*.html" ]
+
+[functions.search-and-answer]
+enabled = true
+verify_jwt = false
+import_map = "./functions/search-and-answer/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/search-and-answer/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/search-and-answer/*.html" ]

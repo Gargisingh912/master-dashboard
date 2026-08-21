@@ -48,7 +48,7 @@ const parseCartKey = (key: string): { serviceId: string; addonIds: string[] } =>
   return { serviceId, addonIds: addonPart ? addonPart.split(",") : [] };
 };
 
-export default function SalonBookingPage({ organizationId: propOrgId }: { organizationId?: string }) {
+export default function SalonOrderPage({ organizationId: propOrgId }: { organizationId?: string }) {
   const { organizationId: paramOrgId } = useParams<{ organizationId: string }>();
   const organizationId = propOrgId || paramOrgId;
   const [orgName, setOrgName] = useState("");

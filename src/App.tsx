@@ -32,8 +32,9 @@ import FreeTrialPage from "./pages/public/FreeTrialPage";
 import RequireSuperAdmin from "./components/RequireSuperAdmin";
 import SuperAdminPage from "./components/SuperAdminPage";
 import QRCodePage from "./pages/Dashboard/QRCodePage";
-import OrderPage from "./pages/public/OrderPage";
-import SalonBookingPage from "./pages/public/SalonBookingPage";
+import KitchenOrderPage from "./pages/public/KitchenOrderPage";
+import SalonOrderPage from "./pages/public/SalonOrderPage";
+import SalonBookingPage from "./pages/public/SalonBookingPage"; // legacy alias
 
 // Salon pages
 import SalonAppointments from "./pages/salon/SalonAppointments";
@@ -61,10 +62,15 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/free-trial" element={<FreeTrialPage />} />
-          <Route path="/order/:organizationId" element={<OrderPage />} />
-          <Route path="/order/:slug/:organizationId" element={<OrderPage />} />
-          
-          {/* Salon Public Routes */}
+          {/* Kitchen ordering (QR code → food order) */}
+          <Route path="/order/:organizationId" element={<KitchenOrderPage />} />
+          <Route path="/order/:slug/:organizationId" element={<KitchenOrderPage />} />
+
+          {/* Salon booking (QR code → appointment) */}
+          <Route path="/salon/:organizationId" element={<SalonOrderPage />} />
+          <Route path="/salon/:slug/:organizationId" element={<SalonOrderPage />} />
+
+          {/* Legacy aliases — keep so existing QR codes keep working */}
           <Route path="/salon-booking/:organizationId" element={<SalonBookingPage />} />
           <Route path="/salon-booking/:slug/:organizationId" element={<SalonBookingPage />} />
 
