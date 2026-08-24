@@ -14,6 +14,9 @@ import HighestSellingDishes from "../../components/ecommerce/HighestSellingDishe
 // New vertical overview pages
 import SalonOverview from "./SalonOverview";
 import AcademyOverview from "../../components/academy/AcademyOverview";
+import SportsClubOverview from "../SportsClub/Overview";
+import WellnessOverview from "../Wellness/Overview";
+import VenueOverview from "../VenueBooking/Overview";
 
 export default function Home() {
   const { type } = useAuth();
@@ -41,6 +44,36 @@ export default function Home() {
         />
         <GreetingHeader />
         <AcademyOverview />
+      </>
+    );
+  }
+
+  if (vertical === "sports club") {
+    return (
+      <>
+        <PageMeta title="Sports Club Dashboard" description="Sports Club overview" />
+        <GreetingHeader />
+        <SportsClubOverview />
+      </>
+    );
+  }
+
+  if (vertical === "wellness") {
+    return (
+      <>
+        <PageMeta title="Wellness Dashboard" description="Wellness center overview" />
+        <GreetingHeader />
+        <WellnessOverview />
+      </>
+    );
+  }
+
+  if (vertical === "venue booking" || vertical === "venue") {
+    return (
+      <>
+        <PageMeta title="Venue Booking Dashboard" description="Venue booking overview" />
+        <GreetingHeader />
+        <VenueOverview />
       </>
     );
   }

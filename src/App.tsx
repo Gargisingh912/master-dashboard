@@ -51,6 +51,27 @@ import AcademyAttendance from "./pages/academy/AcademyAttendance";
 import AcademyFees from "./pages/academy/AcademyFees";
 
 
+// SportsClub pages
+import SportsClubOverview from "./pages/SportsClub/Overview";
+import SportsClubMembers from "./pages/SportsClub/Members";
+import SportsClubFacilities from "./pages/SportsClub/Facilities";
+import SportsClubBookings from "./pages/SportsClub/Bookings";
+
+// Wellness pages
+import WellnessOverview from "./pages/Wellness/Overview";
+import WellnessTreatments from "./pages/Wellness/Treatments";
+import WellnessAppointments from "./pages/Wellness/Appointments";
+
+// VenueBooking pages
+import VenueOverview from "./pages/VenueBooking/Overview";
+import VenueBookings from "./pages/VenueBooking/Bookings";
+import VenueSettings from "./pages/VenueBooking/Settings";
+
+// Public pages
+import SportsClubBookingPage from "./pages/public/SportsClubBookingPage";
+import WellnessBookingPage from "./pages/public/WellnessBookingPage";
+import VenueEnquiryPage from "./pages/public/VenueEnquiryPage";
+
 export default function App() {
   return (
     <>
@@ -73,6 +94,14 @@ export default function App() {
           {/* Legacy aliases — keep so existing QR codes keep working */}
           <Route path="/salon-booking/:organizationId" element={<SalonBookingPage />} />
           <Route path="/salon-booking/:slug/:organizationId" element={<SalonBookingPage />} />
+
+          {/* New Public Routes for Sports Club, Wellness, Venue */}
+          <Route path="/sports-club-booking/:organizationId" element={<SportsClubBookingPage />} />
+          <Route path="/sports-club-booking/:slug/:organizationId" element={<SportsClubBookingPage />} />
+          <Route path="/wellness-booking/:organizationId" element={<WellnessBookingPage />} />
+          <Route path="/wellness-booking/:slug/:organizationId" element={<WellnessBookingPage />} />
+          <Route path="/venue-enquiry/:organizationId" element={<VenueEnquiryPage />} />
+          <Route path="/venue-enquiry/:slug/:organizationId" element={<VenueEnquiryPage />} />
 
           {/* Superadmin — standalone, guarded */}
           <Route element={<RequireSuperAdmin />}>
@@ -106,6 +135,22 @@ export default function App() {
             <Route path="/academy/students" element={<AcademyStudents />} />
             <Route path="/academy/attendance" element={<AcademyAttendance />} />
             <Route path="/academy/fees" element={<AcademyFees />} />
+
+            {/* SportsClub vertical */}
+            <Route path="/sports-club/overview" element={<SportsClubOverview />} />
+            <Route path="/sports-club/members" element={<SportsClubMembers />} />
+            <Route path="/sports-club/facilities" element={<SportsClubFacilities />} />
+            <Route path="/sports-club/bookings" element={<SportsClubBookings />} />
+
+            {/* Wellness vertical */}
+            <Route path="/wellness/overview" element={<WellnessOverview />} />
+            <Route path="/wellness/treatments" element={<WellnessTreatments />} />
+            <Route path="/wellness/appointments" element={<WellnessAppointments />} />
+
+            {/* VenueBooking vertical */}
+            <Route path="/venue-booking/overview" element={<VenueOverview />} />
+            <Route path="/venue-booking/bookings" element={<VenueBookings />} />
+            <Route path="/venue-booking/settings" element={<VenueSettings />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />

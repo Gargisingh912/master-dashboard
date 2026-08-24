@@ -10,8 +10,10 @@ import { KitchenProvider } from "./context/KitchenContext.tsx";
 import { SalonProvider } from "./context/SalonContext.tsx";
 import { AcademyProvider } from "./context/AcademyContext.tsx";
 import { OrderDraftProvider } from "./context/OrderDraftContext.tsx";
+import { SportsClubProvider } from "./context/SportsClubContext.tsx";
+import { WellnessProvider } from "./context/WellnessContext.tsx";
+import { VenueBookingProvider } from "./context/VenueBookingContext.tsx";
 import ErrorBoundary from "./components/common/ErrorBoundary.tsx";
-
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ErrorBoundary>
@@ -20,9 +22,15 @@ createRoot(document.getElementById("root")!).render(
           <SalonProvider>
             <AcademyProvider>
               <OrderDraftProvider>
-                <AppWrapper>
-                  <App />
-                </AppWrapper>
+                <SportsClubProvider>
+                  <WellnessProvider>
+                    <VenueBookingProvider>
+                      <AppWrapper>
+                        <App />
+                      </AppWrapper>
+                    </VenueBookingProvider>
+                  </WellnessProvider>
+                </SportsClubProvider>
               </OrderDraftProvider>
             </AcademyProvider>
           </SalonProvider>

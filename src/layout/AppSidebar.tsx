@@ -88,6 +88,33 @@ const academyNavItems: NavItem[] = [
   { icon: <DocsIcon />, name: "Docs", path: "/docs" },
 ];
 
+// ── Sports Club nav ────────────────────────────────────────────────────────
+const sportsClubNavItems: NavItem[] = [
+  { icon: <LayoutDashboard size={20} strokeWidth={2} />, name: "Overview", path: "/sports-club/overview" },
+  { icon: <Users size={20} strokeWidth={2} />, name: "Members", path: "/sports-club/members" },
+  { icon: <LayoutDashboard size={20} strokeWidth={2} />, name: "Facilities", path: "/sports-club/facilities" },
+  { icon: <Calendar size={20} strokeWidth={2} />, name: "Bookings", path: "/sports-club/bookings" },
+  { icon: <BookOpen size={20} strokeWidth={2} />, name: "Docs", path: "/docs" },
+];
+
+// ── Wellness nav ───────────────────────────────────────────────────────────
+const wellnessNavItems: NavItem[] = [
+  { icon: <LayoutDashboard size={20} strokeWidth={2} />, name: "Overview", path: "/wellness/overview" },
+  { icon: <Package size={20} strokeWidth={2} />, name: "Treatments", path: "/wellness/treatments" },
+  { icon: <Calendar size={20} strokeWidth={2} />, name: "Appointments", path: "/wellness/appointments" },
+  { icon: <User size={20} strokeWidth={2} />, name: "Customers", path: "/customer-tables" },
+  { icon: <BookOpen size={20} strokeWidth={2} />, name: "Docs", path: "/docs" },
+];
+
+// ── Venue Booking nav ──────────────────────────────────────────────────────
+const venueNavItems: NavItem[] = [
+  { icon: <LayoutDashboard size={20} strokeWidth={2} />, name: "Overview", path: "/venue-booking/overview" },
+  { icon: <Calendar size={20} strokeWidth={2} />, name: "Bookings", path: "/venue-booking/bookings" },
+  { icon: <GridIcon />, name: "Venues & Addons", path: "/venue-booking/settings" },
+  { icon: <User size={20} strokeWidth={2} />, name: "Customers", path: "/customer-tables" },
+  { icon: <BookOpen size={20} strokeWidth={2} />, name: "Docs", path: "/docs" },
+];
+
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
@@ -103,12 +130,12 @@ const AppSidebar: React.FC = () => {
 
   // Pick correct nav based on org vertical
   const vertical = (type || "kitchen").toLowerCase();
-  const navItems: NavItem[] =
-    vertical === "salon"
-      ? salonNavItems
-      : vertical.includes("academy") || vertical === "sports academy"
-      ? academyNavItems
-      : kitchenNavItems;
+  let navItems: NavItem[] = kitchenNavItems;
+  if (vertical === "salon") navItems = salonNavItems;
+  else if (vertical.includes("academy") || vertical === "sports academy") navItems = academyNavItems;
+  else if (vertical === "sports club") navItems = sportsClubNavItems;
+  else if (vertical === "wellness") navItems = wellnessNavItems;
+  else if (vertical === "venue booking" || vertical === "venue") navItems = venueNavItems;
 
   const isActive = useCallback(
     (path: string) => location.pathname === path,
