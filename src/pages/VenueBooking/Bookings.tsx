@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import { useVenueBooking, VenueBooking, VenueBookingAddon } from "../../context/VenueBookingContext";
-import { Calendar, Plus, X, Phone, Users, MapPin, DollarSign, Clock } from "lucide-react";
+import { Calendar, Plus, X, Phone, Users } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHeader, TableRow,
 } from "../../components/ui/table";

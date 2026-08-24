@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Link } from "react-router";
 import { useSportsClub } from "../../context/SportsClubContext";
-import { Users, TrendingUp, AlertTriangle, Calendar, Activity, DollarSign } from "lucide-react";
+import { Users, AlertTriangle, Calendar, Activity, DollarSign } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHeader, TableRow,
 } from "../../components/ui/table";

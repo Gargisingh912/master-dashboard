@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
-import { useVenueBooking, Venue, VenueAddonService } from "../../context/VenueBookingContext";
+import { useVenueBooking } from "../../context/VenueBookingContext";
 import { Plus, X, MapPin, Package } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHeader, TableRow,

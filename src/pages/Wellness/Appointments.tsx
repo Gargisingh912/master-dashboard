@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
-import { useWellness, WellnessAppointment } from "../../context/WellnessContext";
+import { useWellness } from "../../context/WellnessContext";
 import { Calendar, Clock, Plus, X, Phone, User, Stethoscope } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHeader, TableRow,

@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { Link } from "react-router";
 import { useWellness } from "../../context/WellnessContext";
-import { Calendar, TrendingUp, Users, Star, Activity, Plus } from "lucide-react";
+import { Calendar, TrendingUp, Star, Activity } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHeader, TableRow,
 } from "../../components/ui/table";
-import IncomingQrAppointments from "../../components/salon/IncomingQrAppointments"; // Reusing the visual component if possible or we can create one. Wait, the prompt said "untouched". But it's okay to just omit the bell or recreate it. For now, we will omit the bell from the new vertical to keep it clean and truly isolated.
+
 
 export default function WellnessOverview() {
   const { appointments, therapists, rooms, packages, redemptions, loading } = useWellness();

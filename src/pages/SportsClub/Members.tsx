@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import { useSportsClub, SportsClubMember } from "../../context/SportsClubContext";
-import { User, Phone, Mail, Calendar, Activity, X, Plus } from "lucide-react";
+import { User, Phone, Calendar, X, Plus } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHeader, TableRow,
 } from "../../components/ui/table";
@@ -18,7 +18,7 @@ const emptyForm = {
 };
 
 export default function SportsClubMembers() {
-  const { members, membershipPlans, addMember, updateMember, deleteMember, loading } = useSportsClub();
+  const { members, membershipPlans, addMember, updateMember, loading } = useSportsClub();
   
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);

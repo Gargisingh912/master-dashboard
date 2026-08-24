@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import { useSportsClub, SportsClubFacility, SportsClubMembershipPlan } from "../../context/SportsClubContext";
-import { Plus, X, Tag, Settings, CreditCard } from "lucide-react";
+import { Plus, X, Settings, CreditCard } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHeader, TableRow,
 } from "../../components/ui/table";

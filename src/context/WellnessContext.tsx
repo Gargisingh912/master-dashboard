@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "../config/supabase";
 import { useAuth } from "../hooks/useAuth";
 
@@ -113,7 +113,7 @@ interface WellnessContextType {
 const WellnessContext = createContext<WellnessContextType | undefined>(undefined);
 
 export function WellnessProvider({ children }: { children: ReactNode }) {
-  const { session } = useAuth();
+  const { user } = useAuth();
   
   const [therapists, setTherapists] = useState<WellnessTherapist[]>([]);
   const [rooms, setRooms] = useState<WellnessRoom[]>([]);
@@ -130,7 +130,7 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
     let active = true;
 
     async function loadData() {
-      if (!session?.user) {
+      if (!user) {
         if (active) setLoading(false);
         return;
       }
@@ -139,7 +139,7 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
         setError(null);
 
         const { data: profileData, error: profileErr } = await supabase
-          .from("profiles").select("organization_id").eq("id", session.user.id).single();
+          .from("profiles").select("organization_id").eq("id", user.id).single();
         if (profileErr) throw profileErr;
         const orgId = profileData.organization_id;
         if (!orgId) throw new Error("No organization found");
@@ -243,11 +243,11 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
 
     channels.forEach(ch => ch.subscribe());
     return () => { active = false; channels.forEach(ch => supabase.removeChannel(ch)); };
-  }, [session]);
+  }, [user]);
 
   const resolveOrgId = async () => {
-    if (!session?.user) throw new Error("Not logged in");
-    const { data } = await supabase.from("profiles").select("organization_id").eq("id", session.user.id).single();
+    if (!user) throw new Error("Not logged in");
+    const { data } = await supabase.from("profiles").select("organization_id").eq("id", user.id).single();
     if (!data?.organization_id) throw new Error("No organization found");
     return data.organization_id;
   };
@@ -437,7 +437,7 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
   const addClientNote = async (n: Omit<WellnessClientNote, "id" | "createdBy" | "createdAt">) => {
     const orgId = await resolveOrgId();
     const { error } = await supabase.from("wellness_client_notes").insert([{
-      organization_id: orgId, customer_contact: n.customerContact, note_text: n.noteText, created_by: session?.user?.id
+      organization_id: orgId, customer_contact: n.customerContact, note_text: n.noteText, created_by: user?.id
     }]);
     if (error) throw error;
   };

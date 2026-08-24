@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "../config/supabase";
 import { useAuth } from "../hooks/useAuth";
 
@@ -96,7 +96,7 @@ interface SportsClubContextType {
 const SportsClubContext = createContext<SportsClubContextType | undefined>(undefined);
 
 export function SportsClubProvider({ children }: { children: ReactNode }) {
-  const { session } = useAuth();
+  const { user } = useAuth();
   
   const [membershipPlans, setMembershipPlans] = useState<SportsClubMembershipPlan[]>([]);
   const [members, setMembers] = useState<SportsClubMember[]>([]);
@@ -112,7 +112,7 @@ export function SportsClubProvider({ children }: { children: ReactNode }) {
     let active = true;
 
     async function loadData() {
-      if (!session?.user) {
+      if (!user) {
         if (active) setLoading(false);
         return;
       }
@@ -124,7 +124,7 @@ export function SportsClubProvider({ children }: { children: ReactNode }) {
         const { data: profileData, error: profileErr } = await supabase
           .from("profiles")
           .select("organization_id")
-          .eq("id", session.user.id)
+          .eq("id", user.id)
           .single();
         if (profileErr) throw profileErr;
         const orgId = profileData.organization_id;
@@ -211,11 +211,11 @@ export function SportsClubProvider({ children }: { children: ReactNode }) {
       active = false;
       channels.forEach(ch => supabase.removeChannel(ch));
     };
-  }, [session]);
+  }, [user]);
 
   const resolveOrgId = async () => {
-    if (!session?.user) throw new Error("Not logged in");
-    const { data } = await supabase.from("profiles").select("organization_id").eq("id", session.user.id).single();
+    if (!user) throw new Error("Not logged in");
+    const { data } = await supabase.from("profiles").select("organization_id").eq("id", user.id).single();
     if (!data?.organization_id) throw new Error("No organization found");
     return data.organization_id;
   };
