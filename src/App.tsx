@@ -66,6 +66,7 @@ import WellnessAppointments from "./pages/Wellness/Appointments";
 import VenueOverview from "./pages/VenueBooking/Overview";
 import VenueBookings from "./pages/VenueBooking/Bookings";
 import VenueSettings from "./pages/VenueBooking/Settings";
+import VenueMemberships from "./pages/VenueBooking/VenueMemberships";
 
 // Public pages
 import SportsClubBookingPage from "./pages/public/SportsClubBookingPage";
@@ -151,6 +152,7 @@ export default function App() {
             <Route path="/venue-booking/overview" element={<VenueOverview />} />
             <Route path="/venue-booking/bookings" element={<VenueBookings />} />
             <Route path="/venue-booking/settings" element={<VenueSettings />} />
+            <Route path="/venue-booking/memberships" element={<VenueMemberships />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />

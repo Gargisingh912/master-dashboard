@@ -357,7 +357,7 @@ export default function KitchenOrderPage({ organizationId: propOrgId }: { organi
           coupon_code: couponApplied ? couponCode : null,
           coupon_discount: couponDiscAmt,
           total: finalTotal,
-          status: "Pending",
+          status: "Placed",
           is_qr_order: true,
         }])
         .select("id, order_id, created_at")
@@ -384,7 +384,7 @@ export default function KitchenOrderPage({ organizationId: propOrgId }: { organi
         }
       }
 
-      setSubmittedOrder({ id: order.id, orderCode: order.order_id, total: finalTotal, created_at: order.created_at, status: "Pending" });
+      setSubmittedOrder({ id: order.id, orderCode: order.order_id, total: finalTotal, created_at: order.created_at, status: "Placed" });
     } catch (err: any) {
       console.error("Order failed:", err);
       setError(err.message || "Failed to place order. Please try again.");
@@ -448,55 +448,195 @@ export default function KitchenOrderPage({ organizationId: propOrgId }: { organi
   // ── Post-submission ────────────────────────────────────────────────────────
 
   if (submittedOrder) {
-    const statusConfig: Record<string, { label: string; color: string; icon: string }> = {
-      Pending: { label: "Order Received!", color: "text-amber-600", icon: "⏳" },
-      Accepted: { label: "Order Accepted!", color: "text-blue-600", icon: "👍" },
-      Preparing: { label: "Being Prepared", color: "text-orange-600", icon: "👨‍🍳" },
-      Ready: { label: "Ready for Pickup!", color: "text-green-600", icon: "✅" },
-      Completed: { label: "Order Completed", color: "text-gray-600", icon: "🎉" },
-      Cancelled: { label: "Order Cancelled", color: "text-red-600", icon: "❌" },
-    };
-    const cfg = statusConfig[submittedOrder.status] || statusConfig.Pending;
+    // ── Status pipeline (maps DB values → display) ───────────────────────────
+    const PIPELINE = [
+      {
+        db: "Placed",
+        label: "Order Placed",
+        sub: "Waiting for kitchen to confirm…",
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
+        color: "bg-amber-400",
+        textColor: "text-amber-600",
+        ring: "ring-amber-200",
+      },
+      {
+        db: "Preparing",
+        label: "Accepted",
+        sub: "Your order is being prepared!",
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
+            <circle cx="12" cy="12" r="10" />
+          </svg>
+        ),
+        color: "bg-orange-400",
+        textColor: "text-orange-600",
+        ring: "ring-orange-200",
+      },
+      {
+        db: "Ready",
+        label: "Prepared",
+        sub: "Your food is ready! 🍽️",
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        ),
+        color: "bg-blue-400",
+        textColor: "text-blue-600",
+        ring: "ring-blue-200",
+      },
+      {
+        db: "Delivered",
+        label: "Delivered",
+        sub: "Enjoy your meal! Thank you 🙏",
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        ),
+        color: "bg-green-500",
+        textColor: "text-green-600",
+        ring: "ring-green-200",
+      },
+    ];
+
+    const currentIdx = PIPELINE.findIndex((s) => s.db === submittedOrder.status);
+    const currentStep = PIPELINE[currentIdx] ?? PIPELINE[0];
+    const isCancelled = submittedOrder.status === "Cancelled" || submittedOrder.status === "Declined" || submittedOrder.status === "Missed";
+    const isDelivered = submittedOrder.status === "Delivered";
 
     return (
-      <div className="max-w-md mx-auto p-6 mt-10 bg-white rounded-2xl shadow-lg border border-gray-100">
-        <div className="text-center mb-6">
-          <div className="text-5xl mb-3">{cfg.icon}</div>
-          <h1 className={`text-2xl font-extrabold ${cfg.color}`}>{cfg.label}</h1>
-          <p className="text-gray-500 text-sm mt-1">Order #{submittedOrder.orderCode}</p>
-          <p className="text-xs text-gray-400 mt-0.5">{new Date(submittedOrder.created_at).toLocaleString()}</p>
+      <div className="max-w-md mx-auto min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className={`relative overflow-hidden px-6 pt-10 pb-8 text-white ${
+          isCancelled ? "bg-red-500" : isDelivered ? "bg-green-500" : "bg-gray-800"
+        }`}>
+          {/* Decorative circles */}
+          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/10" />
+          <div className="absolute -bottom-12 -left-8 w-32 h-32 rounded-full bg-white/10" />
+
+          {orgLogo && (
+            <img src={orgLogo} alt="Logo" className="w-10 h-10 rounded-full object-cover mb-4 ring-2 ring-white/30" />
+          )}
+
+          {isCancelled ? (
+            <>
+              <div className="text-4xl mb-2">❌</div>
+              <h1 className="text-2xl font-extrabold">Order {submittedOrder.status}</h1>
+              <p className="text-white/70 text-sm mt-1">We're sorry — please contact the kitchen.</p>
+            </>
+          ) : isDelivered ? (
+            <>
+              <div className="text-4xl mb-2">🎉</div>
+              <h1 className="text-2xl font-extrabold">Delivered!</h1>
+              <p className="text-white/80 text-sm mt-1">Enjoy your meal. Thank you for ordering!</p>
+            </>
+          ) : (
+            <>
+              <p className="text-white/60 text-xs uppercase tracking-widest font-bold mb-1">Live Status</p>
+              <h1 className="text-2xl font-extrabold">{currentStep.label}</h1>
+              <p className="text-white/70 text-sm mt-1">{currentStep.sub}</p>
+            </>
+          )}
+
+          <p className="text-white/50 text-xs mt-3">Order #{submittedOrder.orderCode}</p>
         </div>
 
-        <div className="mb-4 bg-gray-50 rounded-xl p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-2">Your Order</p>
-          {cartLines.map((line) => (
-            <div key={line.key} className="flex justify-between text-sm text-gray-700 py-1 border-b border-gray-100 last:border-0">
-              <span>
-                {line.name} × {line.quantity}
-                {line.addons.length > 0 && (
-                  <span className="block text-xs text-gray-400">+ {line.addons.map((a) => a.name).join(", ")}</span>
-                )}
-              </span>
-              <span>₹{(line.unitPrice * line.quantity).toFixed(2)}</span>
+        <div className="px-4 py-5 flex flex-col gap-4">
+          {/* Progress stepper */}
+          {!isCancelled && (
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Order Progress</p>
+              <div className="flex items-start justify-between">
+                {PIPELINE.map((step, idx) => {
+                  const isDone = idx <= currentIdx;
+                  const isCur = idx === currentIdx;
+                  return (
+                    <div key={step.db} className="flex flex-col items-center flex-1">
+                      {/* Dot + line */}
+                      <div className="relative flex items-center w-full">
+                        {/* Left connector */}
+                        <div className={`flex-1 h-0.5 ${
+                          idx === 0 ? "invisible" : idx <= currentIdx ? step.color.replace("bg-","bg-") : "bg-gray-200"
+                        }`} />
+                        {/* Dot */}
+                        <div className={`relative z-10 flex items-center justify-center w-9 h-9 rounded-full border-2 transition-all duration-500 ${
+                          isCur
+                            ? `${step.color} border-transparent text-white ring-4 ${step.ring} scale-110`
+                            : isDone
+                            ? `${step.color} border-transparent text-white`
+                            : "bg-gray-100 border-gray-200 text-gray-300"
+                        }`}>
+                          {isDone && !isCur ? (
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <span className="text-sm [&>svg]:w-4 [&>svg]:h-4">{step.icon}</span>
+                          )}
+                          {/* Pulse for current */}
+                          {isCur && (
+                            <span className={`absolute inset-0 rounded-full ${step.color} opacity-30 animate-ping`} />
+                          )}
+                        </div>
+                        {/* Right connector */}
+                        <div className={`flex-1 h-0.5 ${
+                          idx === PIPELINE.length - 1 ? "invisible" :
+                          idx < currentIdx ? PIPELINE[idx + 1].color : "bg-gray-200"
+                        }`} />
+                      </div>
+                      {/* Label */}
+                      <p className={`text-[10px] font-semibold mt-2 text-center leading-tight ${
+                        isDone ? step.textColor : "text-gray-300"
+                      }`}>
+                        {step.label}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          ))}
+          )}
+
+          {/* Order summary */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Your Order</p>
+            {cartLines.map((line) => (
+              <div key={line.key} className="flex justify-between items-start text-sm text-gray-700 py-2 border-b border-gray-50 last:border-0">
+                <span>
+                  <span className="font-medium">{line.name}</span>
+                  <span className="text-gray-400"> × {line.quantity}</span>
+                  {line.addons.length > 0 && (
+                    <span className="block text-xs text-gray-400 mt-0.5">+ {line.addons.map((a) => a.name).join(", ")}</span>
+                  )}
+                </span>
+                <span className="font-medium text-gray-800 shrink-0 ml-3">₹{(line.unitPrice * line.quantity).toFixed(2)}</span>
+              </div>
+            ))}
+            <div className="flex justify-between font-bold text-gray-900 pt-3 mt-1">
+              <span>Total</span>
+              <span className="text-brand-500">₹{submittedOrder.total.toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* Time + order ID */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex justify-between text-xs text-gray-400">
+            <span>Placed at {new Date(submittedOrder.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            <span>#{submittedOrder.orderCode}</span>
+          </div>
+
+          <button
+            onClick={() => { setSubmittedOrder(null); setCart({}); setName(""); setContact(""); setEmail(""); setNotes(""); setTableNumber(""); handleRemoveCoupon(); }}
+            className="w-full py-3.5 bg-gray-800 text-white font-semibold rounded-xl hover:bg-gray-900 transition-colors text-sm"
+          >
+            Place Another Order
+          </button>
         </div>
-
-        <div className="flex justify-between font-bold text-gray-800 text-base mb-6 border-t border-gray-200 pt-3">
-          <span>Total</span>
-          <span className="text-brand-500">₹{submittedOrder.total.toFixed(2)}</span>
-        </div>
-
-        {submittedOrder.status === "Pending" && (
-          <p className="text-center text-xs text-gray-400 italic">Waiting for kitchen to confirm your order…</p>
-        )}
-
-        <button
-          onClick={() => { setSubmittedOrder(null); setCart({}); setName(""); setContact(""); setEmail(""); setNotes(""); setTableNumber(""); handleRemoveCoupon(); }}
-          className="w-full mt-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors"
-        >
-          Place Another Order
-        </button>
       </div>
     );
   }

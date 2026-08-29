@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useKitchen } from "../../context/KitchenContext";
 import { startContinuousAlarm, stopContinuousAlarm } from "../../utils/helpers";
 
@@ -23,14 +23,25 @@ export default function IncomingQrOrders() {
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [orders]);
 
-  // Ring the kitchen alarm only while a QR order is waiting. Respects the
-  // header's mute toggle (isSilentMode) internally via startContinuousAlarm.
+  // Only ring when a NEW order arrives (length increases).
+  // When an order is accepted/declined the count drops — we must NOT restart
+  // the alarm, or it would immediately undo the staff's accept action.
+  const prevLengthRef = useRef(0);
   useEffect(() => {
-    if (pendingQrOrders.length > 0) {
-      startContinuousAlarm();
-    } else {
+    const prev = prevLengthRef.current;
+    const curr = pendingQrOrders.length;
+    prevLengthRef.current = curr;
+
+    if (curr === 0) {
+      // All orders handled — silence everything.
       stopContinuousAlarm();
+    } else if (curr > prev) {
+      // Count went up → at least one new order arrived.
+      startContinuousAlarm();
     }
+    // curr > 0 && curr <= prev  →  order accepted/declined but more remain;
+    // alarm was already stopped by handleAccept — do NOT restart it here.
+
     return () => stopContinuousAlarm();
   }, [pendingQrOrders.length]);
 
@@ -40,6 +51,9 @@ export default function IncomingQrOrders() {
     menu.find((m) => m.id === menuItemId)?.name || "Item";
 
   const handleAccept = (id: string) => {
+    // Stop the alarm immediately on click — don't wait for the realtime
+    // round-trip to update pendingQrOrders and re-run the useEffect.
+    stopContinuousAlarm();
     updateOrderStatus(id, "Preparing");
   };
 

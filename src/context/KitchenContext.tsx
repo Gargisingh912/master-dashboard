@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "../config/supabase";
 import { useAuth } from "../hooks/useAuth";
+import { startContinuousAlarm } from "../utils/helpers";
 
 export interface InventoryItem {
   id: string;
@@ -413,6 +414,12 @@ export const KitchenProvider: React.FC<{ children: ReactNode }> = ({ children })
             if (prev.find(o => o.id === r.id)) return prev;
             return [newOrder, ...prev];
           });
+
+          // 🔔 Sound alert: ring the kitchen alarm the moment a QR order
+          // arrives. IncomingQrOrders component owns the stop logic.
+          if (newOrder.orderCode && newOrder.status === "Placed") {
+            startContinuousAlarm();
+          }
         }
       )
       .on(

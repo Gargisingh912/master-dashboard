@@ -5,6 +5,7 @@ import { Calendar, DollarSign, Activity, MapPin } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHeader, TableRow,
 } from "../../components/ui/table";
+import QrKpiWidget from "../../components/ecommerce/QrKpiWidget";
 
 export default function VenueOverview() {
   const { bookings, payments, venues, loading } = useVenueBooking();
@@ -127,7 +128,7 @@ export default function VenueOverview() {
 
       {/* Right Column (4/12) */}
       <div className="lg:col-span-4 flex flex-col gap-4 md:gap-6">
-        
+        <QrKpiWidget />
         {/* Revenue Overview */}
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-white/[0.03] p-5">
           <div className="flex items-center gap-2 mb-3">

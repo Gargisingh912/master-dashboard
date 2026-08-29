@@ -5,6 +5,7 @@ import { DollarSign, Users, CheckCircle, AlertTriangle, TrendingUp, UserPlus, Us
 import {
   Table, TableBody, TableCell, TableHeader, TableRow,
 } from "../ui/table";
+import QrKpiWidget from "../ecommerce/QrKpiWidget";
 
 export default function AcademyOverview() {
   const { students, batches, coaches, attendance, feePayments, loading } = useAcademy();
@@ -224,6 +225,7 @@ export default function AcademyOverview() {
 
       {/* Right column — stats */}
       <div className="lg:col-span-4 flex flex-col gap-4 md:gap-6">
+        <QrKpiWidget />
 
         {/* Active students & capacity */}
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-white/[0.03] p-5">

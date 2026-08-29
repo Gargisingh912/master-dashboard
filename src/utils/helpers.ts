@@ -185,6 +185,29 @@ let activeAudioCtx: AudioContext | null = null;
 let vibrationInterval: any = null;
 let _silentMode = false;
 
+let _hasInteracted = false;
+if (typeof window !== 'undefined') {
+  const markInteracted = () => {
+    _hasInteracted = true;
+    window.removeEventListener('click', markInteracted);
+    window.removeEventListener('keydown', markInteracted);
+    window.removeEventListener('touchstart', markInteracted);
+  };
+  window.addEventListener('click', markInteracted);
+  window.addEventListener('keydown', markInteracted);
+  window.addEventListener('touchstart', markInteracted);
+}
+
+export const safeVibrate = (pattern: number | number[]) => {
+  if (typeof navigator !== 'undefined' && navigator.vibrate && _hasInteracted) {
+    try {
+      navigator.vibrate(pattern);
+    } catch (e) {
+      // ignore
+    }
+  }
+};
+
 /**
  * Silent mode: mutes audio alarm but keeps vibration going
  */
@@ -211,9 +234,7 @@ export const setSilentMode = (silent: boolean) => {
 export const startVibration = () => {
   if (vibrationInterval) return;
   const vibrate = () => {
-    if (navigator.vibrate) {
-      navigator.vibrate([200, 100, 200, 100, 200]);
-    }
+    safeVibrate([200, 100, 200, 100, 200]);
   };
   vibrate();
   vibrationInterval = setInterval(vibrate, 1500);
@@ -224,9 +245,7 @@ export const stopVibration = () => {
     clearInterval(vibrationInterval);
     vibrationInterval = null;
   }
-  if (navigator.vibrate) {
-    navigator.vibrate(0); // cancel any ongoing vibration
-  }
+  safeVibrate(0);
 };
 
 export const startContinuousAlarm = () => {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../config/supabase";
 import { BellRing, Bell, Check } from "lucide-react";
+import { safeVibrate } from "../../utils/helpers";
 
 interface OrderPayload {
   id: string;
@@ -110,9 +111,7 @@ export default function KitchenAlertBell({ organizationId }: KitchenAlertBellPro
     }
 
     // Trigger vibration on devices that support it
-    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-      navigator.vibrate([400, 200, 400, 200, 400]);
-    }
+    safeVibrate([400, 200, 400, 200, 400]);
   };
 
   const playAlarmLoop = () => {

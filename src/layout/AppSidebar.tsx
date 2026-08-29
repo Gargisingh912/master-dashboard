@@ -35,6 +35,7 @@ const kitchenNavItems: NavItem[] = [
   { icon: <DollarLineIcon />, name: "Finance", path: "/finance" },
   { icon: <UserCircleIcon />, name: "Customers", path: "/customer-tables" },
   { icon: <UserCircleIcon />, name: "Discount Coupons", path: "/coupons" },
+  { icon: <Calendar size={20} strokeWidth={2} />, name: "Calendar & Tasks", path: "/calendar" },
   { icon: <ChatIcon />, name: "Talk to your Data!!", path: "/blank" },
   { icon: <DocsIcon />, name: "Docs", path: "/docs" },
 ];
@@ -48,6 +49,8 @@ const salonNavItems: NavItem[] = [
   { icon: <Package size={20} strokeWidth={2} />, name: "Packages", path: "/salon/packages" },
   { icon: <Receipt size={20} strokeWidth={2} />, name: "Billing", path: "/salon/billing" },
   { icon: <User size={20} strokeWidth={2} />, name: "Customers", path: "/customer-tables" },
+  { icon: <ListIcon />, name: "QR Code", path: "/qr-code" },
+  { icon: <Calendar size={20} strokeWidth={2} />, name: "Calendar & Tasks", path: "/calendar" },
   { icon: <BookOpen size={20} strokeWidth={2} />, name: "Docs", path: "/docs" },
 ];
 
@@ -85,6 +88,8 @@ const academyNavItems: NavItem[] = [
   { icon: studentIcon, name: "Student Profiles", path: "/academy/students" },
   { icon: attendanceIcon, name: "Attendance", path: "/academy/attendance" },
   { icon: coachIcon, name: "Coaches", path: "/academy/coaches" },
+  { icon: <ListIcon />, name: "QR Code", path: "/qr-code" },
+  { icon: <Calendar size={20} strokeWidth={2} />, name: "Calendar & Tasks", path: "/calendar" },
   { icon: <DocsIcon />, name: "Docs", path: "/docs" },
 ];
 
@@ -94,6 +99,8 @@ const sportsClubNavItems: NavItem[] = [
   { icon: <Users size={20} strokeWidth={2} />, name: "Members", path: "/sports-club/members" },
   { icon: <LayoutDashboard size={20} strokeWidth={2} />, name: "Facilities", path: "/sports-club/facilities" },
   { icon: <Calendar size={20} strokeWidth={2} />, name: "Bookings", path: "/sports-club/bookings" },
+  { icon: <ListIcon />, name: "QR Code", path: "/qr-code" },
+  { icon: <Calendar size={20} strokeWidth={2} />, name: "Calendar & Tasks", path: "/calendar" },
   { icon: <BookOpen size={20} strokeWidth={2} />, name: "Docs", path: "/docs" },
 ];
 
@@ -103,15 +110,20 @@ const wellnessNavItems: NavItem[] = [
   { icon: <Package size={20} strokeWidth={2} />, name: "Treatments", path: "/wellness/treatments" },
   { icon: <Calendar size={20} strokeWidth={2} />, name: "Appointments", path: "/wellness/appointments" },
   { icon: <User size={20} strokeWidth={2} />, name: "Customers", path: "/customer-tables" },
+  { icon: <ListIcon />, name: "QR Code", path: "/qr-code" },
+  { icon: <Calendar size={20} strokeWidth={2} />, name: "Calendar & Tasks", path: "/calendar" },
   { icon: <BookOpen size={20} strokeWidth={2} />, name: "Docs", path: "/docs" },
 ];
 
 // ── Venue Booking nav ──────────────────────────────────────────────────────
 const venueNavItems: NavItem[] = [
-  { icon: <LayoutDashboard size={20} strokeWidth={2} />, name: "Overview", path: "/venue-booking/overview" },
+  { icon: <PieChart size={20} strokeWidth={2} />, name: "Overview", path: "/venue-booking/overview" },
   { icon: <Calendar size={20} strokeWidth={2} />, name: "Bookings", path: "/venue-booking/bookings" },
+  { icon: <Users size={20} strokeWidth={2} />, name: "Memberships", path: "/venue-booking/memberships" },
   { icon: <GridIcon />, name: "Venues & Addons", path: "/venue-booking/settings" },
   { icon: <User size={20} strokeWidth={2} />, name: "Customers", path: "/customer-tables" },
+  { icon: <ListIcon />, name: "QR Code", path: "/qr-code" },
+  { icon: <Calendar size={20} strokeWidth={2} />, name: "Calendar & Tasks", path: "/calendar" },
   { icon: <BookOpen size={20} strokeWidth={2} />, name: "Docs", path: "/docs" },
 ];
 

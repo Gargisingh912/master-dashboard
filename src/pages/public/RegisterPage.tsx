@@ -4,11 +4,10 @@ import { Store, ArrowLeft } from "lucide-react";
 import {
   Button,
   Input,
-  Select,
   Alert,
   Card,
 } from "../../components/ui";
-import { APP_CONFIG } from "../../config/config";
+
 import { supabase } from "../../config/supabase";
 import { isValidEmail, isValidPhone } from "../../utils/helpers";
 
@@ -91,15 +90,15 @@ const RegisterPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Maps organization_type -> dashboard route.
-  // Adjust these paths to match your actual router config.
+  // Maps organization_type -> dashboard route after registration.
   const dashboardRouteFor = (type: string) => {
     const safeType = type.toLowerCase();
-
     if (safeType.includes("kitchen")) return "/dashboard/kitchen";
-    if (safeType.includes("academy")) return "/dashboard/academy";
     if (safeType.includes("salon")) return "/dashboard/salon";
-
+    if (safeType.includes("academy")) return "/dashboard/academy";
+    if (safeType.includes("sports")) return "/sports-club/overview";
+    if (safeType.includes("wellness")) return "/wellness/overview";
+    if (safeType.includes("venue")) return "/venue-booking/overview";
     return "/dashboard";
   };
 
@@ -235,18 +234,55 @@ const RegisterPage: React.FC = () => {
                   required
                 />
 
-                <Select
-                  label="Organization Type"
-                  name="organization_type"
-                  value={formData.organization_type}
-                  onChange={handleChange}
-                  error={errors.organization_type}
-                  options={APP_CONFIG.organizationTypes.map((type) => ({
-                    value: type,
-                    label: type,
-                  }))}
-                  required
-                />
+                {/* Organization Type — visual card picker */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Organization Type <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {[
+                      { value: "Kitchen",       emoji: "🍽️",  label: "Kitchen / Restaurant", desc: "Food ordering & menu" },
+                      { value: "Salon",         emoji: "✂️",  label: "Salon / Spa",           desc: "Appointments & services" },
+                      { value: "Academy",       emoji: "🎓",  label: "Academy / Institute",   desc: "Batches, fees & students" },
+                      { value: "Sports Club",   emoji: "🏅",  label: "Sports Club",           desc: "Members & facility booking" },
+                      { value: "Wellness",      emoji: "🧘",  label: "Wellness Centre",       desc: "Treatments & appointments" },
+                      { value: "Venue Booking", emoji: "🏟️", label: "Venue Booking",         desc: "Venues & enquiries" },
+                    ].map((opt) => {
+                      const selected = formData.organization_type === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({ ...prev, organization_type: opt.value }));
+                            if (errors.organization_type) setErrors((prev) => ({ ...prev, organization_type: "" }));
+                          }}
+                          className={`relative flex flex-col items-start gap-1 rounded-xl border-2 p-3 text-left transition-all duration-150 focus:outline-none
+                            ${selected
+                              ? "border-blue-500 bg-blue-50 shadow-sm"
+                              : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                            }`}
+                        >
+                          <span className="text-2xl leading-none">{opt.emoji}</span>
+                          <span className={`text-sm font-semibold leading-tight ${selected ? "text-blue-700" : "text-gray-800"}`}>
+                            {opt.label}
+                          </span>
+                          <span className="text-[11px] text-gray-400 leading-tight">{opt.desc}</span>
+                          {selected && (
+                            <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500">
+                              <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {errors.organization_type && (
+                    <p className="mt-1.5 text-xs text-red-500">{errors.organization_type}</p>
+                  )}
+                </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <Input

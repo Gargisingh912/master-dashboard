@@ -50,11 +50,40 @@ export interface VenuePayment {
   paymentDate: string;
 }
 
+export interface VenueMembershipPlan {
+  id: string;
+  name: string;
+  durationMonths: number;
+  price: number;
+  isActive: boolean;
+}
+
+export interface VenueMember {
+  id: string;
+  name: string;
+  contact?: string;
+  email?: string;
+  dob?: string;
+  membershipPlanId?: string;
+  membershipStart?: string;
+  membershipEnd?: string;
+  isActive: boolean;
+}
+
+export interface VenueCheckin {
+  id: string;
+  memberId: string;
+  checkinTime: string; // TIMESTAMPTZ
+}
+
 interface VenueBookingContextType {
   venues: Venue[];
   addonServices: VenueAddonService[];
   bookings: VenueBooking[];
   payments: VenuePayment[];
+  membershipPlans: VenueMembershipPlan[];
+  members: VenueMember[];
+  checkins: VenueCheckin[];
   loading: boolean;
   error: string | null;
 
@@ -71,6 +100,16 @@ interface VenueBookingContextType {
   deleteBooking: (id: string) => Promise<void>;
 
   addPayment: (p: Omit<VenuePayment, "id" | "paymentDate">) => Promise<void>;
+
+  addMembershipPlan: (p: Omit<VenueMembershipPlan, "id">) => Promise<void>;
+  updateMembershipPlan: (id: string, updates: Partial<Omit<VenueMembershipPlan, "id">>) => Promise<void>;
+  deleteMembershipPlan: (id: string) => Promise<void>;
+
+  addMember: (m: Omit<VenueMember, "id">) => Promise<void>;
+  updateMember: (id: string, updates: Partial<Omit<VenueMember, "id">>) => Promise<void>;
+  deleteMember: (id: string) => Promise<void>;
+
+  addCheckin: (c: Omit<VenueCheckin, "id" | "checkinTime">) => Promise<void>;
 }
 
 const VenueBookingContext = createContext<VenueBookingContextType | undefined>(undefined);
@@ -82,6 +121,9 @@ export function VenueBookingProvider({ children }: { children: ReactNode }) {
   const [addonServices, setAddonServices] = useState<VenueAddonService[]>([]);
   const [bookings, setBookings] = useState<VenueBooking[]>([]);
   const [payments, setPayments] = useState<VenuePayment[]>([]);
+  const [membershipPlans, setMembershipPlans] = useState<VenueMembershipPlan[]>([]);
+  const [members, setMembers] = useState<VenueMember[]>([]);
+  const [checkins, setCheckins] = useState<VenueCheckin[]>([]);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,14 +151,20 @@ export function VenueBookingProvider({ children }: { children: ReactNode }) {
           { data: addonsData, error: addonsErr },
           { data: bookingsData, error: bookingsErr },
           { data: bookingAddonsData, error: bookingAddonsErr },
-          { data: paymentsData, error: paymentsErr }
+          { data: paymentsData, error: paymentsErr },
+          { data: plansData, error: plansErr },
+          { data: membersData, error: membersErr },
+          { data: checkinsData, error: checkinsErr }
         ] = await Promise.all([
           supabase.from("venue_venues").select("*").eq("organization_id", orgId),
           supabase.from("venue_addon_services").select("*").eq("organization_id", orgId),
           supabase.from("venue_bookings").select("*").eq("organization_id", orgId).order("booking_date", { ascending: false }),
           supabase.from("venue_booking_addons").select("id, booking_id, addon_service_id, quantity, price_at_booking")
             .in("booking_id", (await supabase.from("venue_bookings").select("id").eq("organization_id", orgId)).data?.map(b => b.id) || []),
-          supabase.from("venue_payments").select("*").eq("organization_id", orgId).order("payment_date", { ascending: false })
+          supabase.from("venue_payments").select("*").eq("organization_id", orgId).order("payment_date", { ascending: false }),
+          supabase.from("venue_membership_plans").select("*").eq("organization_id", orgId),
+          supabase.from("venue_members").select("*").eq("organization_id", orgId),
+          supabase.from("venue_checkins").select("*").eq("organization_id", orgId).order("checkin_time", { ascending: false })
         ]);
 
         if (venuesErr) throw venuesErr;
@@ -124,6 +172,9 @@ export function VenueBookingProvider({ children }: { children: ReactNode }) {
         if (bookingsErr) throw bookingsErr;
         if (bookingAddonsErr) throw bookingAddonsErr;
         if (paymentsErr) throw paymentsErr;
+        if (plansErr) throw plansErr;
+        if (membersErr) throw membersErr;
+        if (checkinsErr) throw checkinsErr;
 
         if (active) {
           setVenues(venuesData.map(v => ({
@@ -156,6 +207,18 @@ export function VenueBookingProvider({ children }: { children: ReactNode }) {
             id: p.id, bookingId: p.booking_id, amount: p.amount, paymentType: p.payment_type,
             paymentMethod: p.payment_method || undefined, paymentDate: p.payment_date
           })));
+
+          setMembershipPlans(plansData.map(p => ({
+            id: p.id, name: p.name, durationMonths: p.duration_months, price: p.price, isActive: p.is_active
+          })));
+          setMembers(membersData.map(m => ({
+            id: m.id, name: m.name, contact: m.contact || undefined, email: m.email || undefined, dob: m.dob || undefined,
+            membershipPlanId: m.membership_plan_id || undefined, membershipStart: m.membership_start || undefined,
+            membershipEnd: m.membership_end || undefined, isActive: m.is_active
+          })));
+          setCheckins(checkinsData.map(c => ({
+            id: c.id, memberId: c.member_id, checkinTime: c.checkin_time
+          })));
         }
       } catch (err: any) {
         console.error("Error loading venue data:", err);
@@ -172,7 +235,10 @@ export function VenueBookingProvider({ children }: { children: ReactNode }) {
       supabase.channel('public:venue_addon_services').on('postgres_changes', { event: '*', schema: 'public', table: 'venue_addon_services' }, loadData),
       supabase.channel('public:venue_bookings').on('postgres_changes', { event: '*', schema: 'public', table: 'venue_bookings' }, loadData),
       supabase.channel('public:venue_booking_addons').on('postgres_changes', { event: '*', schema: 'public', table: 'venue_booking_addons' }, loadData),
-      supabase.channel('public:venue_payments').on('postgres_changes', { event: '*', schema: 'public', table: 'venue_payments' }, loadData)
+      supabase.channel('public:venue_payments').on('postgres_changes', { event: '*', schema: 'public', table: 'venue_payments' }, loadData),
+      supabase.channel('public:venue_membership_plans').on('postgres_changes', { event: '*', schema: 'public', table: 'venue_membership_plans' }, loadData),
+      supabase.channel('public:venue_members').on('postgres_changes', { event: '*', schema: 'public', table: 'venue_members' }, loadData),
+      supabase.channel('public:venue_checkins').on('postgres_changes', { event: '*', schema: 'public', table: 'venue_checkins' }, loadData)
     ];
 
     channels.forEach(ch => ch.subscribe());
@@ -324,13 +390,73 @@ export function VenueBookingProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const addMembershipPlan = async (p: Omit<VenueMembershipPlan, "id">) => {
+    const orgId = await resolveOrgId();
+    const { error } = await supabase.from("venue_membership_plans").insert([{
+      organization_id: orgId, name: p.name, duration_months: p.durationMonths, price: p.price, is_active: p.isActive
+    }]);
+    if (error) throw error;
+  };
+
+  const updateMembershipPlan = async (id: string, updates: Partial<Omit<VenueMembershipPlan, "id">>) => {
+    const orgId = await resolveOrgId();
+    const { error } = await supabase.from("venue_membership_plans").update({
+      name: updates.name, duration_months: updates.durationMonths, price: updates.price, is_active: updates.isActive
+    }).eq("id", id).eq("organization_id", orgId);
+    if (error) throw error;
+  };
+
+  const deleteMembershipPlan = async (id: string) => {
+    const orgId = await resolveOrgId();
+    const { error } = await supabase.from("venue_membership_plans").delete().eq("id", id).eq("organization_id", orgId);
+    if (error) throw error;
+  };
+
+  const addMember = async (m: Omit<VenueMember, "id">) => {
+    const orgId = await resolveOrgId();
+    const { error } = await supabase.from("venue_members").insert([{
+      organization_id: orgId, name: m.name, contact: m.contact || null, email: m.email || null, dob: m.dob || null,
+      membership_plan_id: m.membershipPlanId || null, membership_start: m.membershipStart || null,
+      membership_end: m.membershipEnd || null, is_active: m.isActive
+    }]);
+    if (error) throw error;
+  };
+
+  const updateMember = async (id: string, updates: Partial<Omit<VenueMember, "id">>) => {
+    const orgId = await resolveOrgId();
+    const { error } = await supabase.from("venue_members").update({
+      name: updates.name, contact: updates.contact || null, email: updates.email || null, dob: updates.dob || null,
+      membership_plan_id: updates.membershipPlanId || null, membership_start: updates.membershipStart || null,
+      membership_end: updates.membershipEnd || null, is_active: updates.isActive
+    }).eq("id", id).eq("organization_id", orgId);
+    if (error) throw error;
+  };
+
+  const deleteMember = async (id: string) => {
+    const orgId = await resolveOrgId();
+    const { error } = await supabase.from("venue_members").delete().eq("id", id).eq("organization_id", orgId);
+    if (error) throw error;
+  };
+
+  const addCheckin = async (c: Omit<VenueCheckin, "id" | "checkinTime">) => {
+    const orgId = await resolveOrgId();
+    const { error } = await supabase.from("venue_checkins").insert([{
+      organization_id: orgId, member_id: c.memberId
+    }]);
+    if (error) throw error;
+  };
+
+
   return (
     <VenueBookingContext.Provider value={{
-      venues, addonServices, bookings, payments, loading, error,
+      venues, addonServices, bookings, payments, membershipPlans, members, checkins, loading, error,
       addVenue, updateVenue, deleteVenue,
       addAddonService, updateAddonService, deleteAddonService,
       addBooking, updateBooking, deleteBooking,
-      addPayment
+      addPayment,
+      addMembershipPlan, updateMembershipPlan, deleteMembershipPlan,
+      addMember, updateMember, deleteMember,
+      addCheckin
     }}>
       {children}
     </VenueBookingContext.Provider>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import { useVenueBooking } from "../../context/VenueBookingContext";
-import { Plus, X, MapPin, Package } from "lucide-react";
+import { Plus, X, MapPin, Package, CreditCard } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHeader, TableRow,
 } from "../../components/ui/table";
@@ -19,14 +19,22 @@ const emptyAddon = {
   isActive: true,
 };
 
+const emptyPlan = {
+  name: "",
+  durationMonths: 1,
+  price: 0,
+  isActive: true,
+};
+
 export default function VenueSettings() {
-  const { venues, addonServices, addVenue, updateVenue, addAddonService, updateAddonService, loading } = useVenueBooking();
-  const [activeTab, setActiveTab] = useState<"venues" | "addons">("venues");
+  const { venues, addonServices, membershipPlans, addVenue, updateVenue, addAddonService, updateAddonService, addMembershipPlan, updateMembershipPlan, loading } = useVenueBooking();
+  const [activeTab, setActiveTab] = useState<"venues" | "addons" | "plans">("venues");
   
   const [showForm, setShowForm] = useState(false);
   
   const [venueForm, setVenueForm] = useState(emptyVenue);
   const [addonForm, setAddonForm] = useState(emptyAddon);
+  const [planForm, setPlanForm] = useState(emptyPlan);
   
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -53,11 +61,17 @@ export default function VenueSettings() {
             isActive: venueForm.isActive,
           });
         }
-      } else {
+      } else if (activeTab === "addons") {
         if (editingId) {
           await updateAddonService(editingId, addonForm);
         } else {
           await addAddonService(addonForm);
+        }
+      } else {
+        if (editingId) {
+          await updateMembershipPlan(editingId, planForm);
+        } else {
+          await addMembershipPlan(planForm);
         }
       }
       setShowForm(false);
@@ -78,9 +92,16 @@ export default function VenueSettings() {
         basePrice: item.basePrice,
         isActive: item.isActive,
       });
-    } else {
+    } else if (activeTab === "addons") {
       setAddonForm({
         name: item.name,
+        price: item.price,
+        isActive: item.isActive,
+      });
+    } else {
+      setPlanForm({
+        name: item.name,
+        durationMonths: item.durationMonths,
         price: item.price,
         isActive: item.isActive,
       });
@@ -91,7 +112,8 @@ export default function VenueSettings() {
   const resetForm = () => {
     setEditingId(null);
     if (activeTab === "venues") setVenueForm(emptyVenue);
-    else setAddonForm(emptyAddon);
+    else if (activeTab === "addons") setAddonForm(emptyAddon);
+    else setPlanForm(emptyPlan);
     setShowForm(true);
   };
 
@@ -118,6 +140,12 @@ export default function VenueSettings() {
           className={`pb-3 font-semibold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === "addons" ? "border-brand-500 text-brand-600 dark:text-brand-400" : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
         >
           <Package size={16} /> Addons
+        </button>
+        <button
+          onClick={() => setActiveTab("plans")}
+          className={`pb-3 font-semibold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === "plans" ? "border-brand-500 text-brand-600 dark:text-brand-400" : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
+        >
+          <CreditCard size={16} /> Membership Plans
         </button>
       </div>
 
@@ -182,6 +210,35 @@ export default function VenueSettings() {
             </Table>
           )}
 
+          {activeTab === "plans" && (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableCell isHeader>Plan Name</TableCell>
+                  <TableCell isHeader>Duration</TableCell>
+                  <TableCell isHeader>Price</TableCell>
+                  <TableCell isHeader>Status</TableCell>
+                  <TableCell isHeader className="text-right">Actions</TableCell>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {membershipPlans.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-bold text-gray-800 dark:text-white/90">{p.name}</TableCell>
+                    <TableCell className="text-gray-500 text-sm">{p.durationMonths} Months</TableCell>
+                    <TableCell className="font-bold text-brand-600 dark:text-brand-400">₹{p.price}</TableCell>
+                    <TableCell>
+                      {p.isActive ? <span className="text-xs font-medium bg-success-50 text-success-700 px-2 py-0.5 rounded">Active</span> : <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Inactive</span>}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <button onClick={() => startEdit(p)} className="text-sm text-brand-600 hover:underline">Edit</button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+
         </div>
       )}
 
@@ -199,7 +256,7 @@ export default function VenueSettings() {
           <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800">
               <h2 className="text-lg font-bold text-gray-800 dark:text-white/90">
-                {editingId ? "Edit" : "New"} {activeTab === "venues" ? "Venue" : "Addon"}
+                {editingId ? "Edit" : "New"} {activeTab === "venues" ? "Venue" : activeTab === "addons" ? "Addon" : "Plan"}
               </h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                 <X size={20} />
@@ -230,7 +287,7 @@ export default function VenueSettings() {
                     <span className="text-sm font-semibold text-gray-800 dark:text-white/90">Active</span>
                   </label>
                 </>
-              ) : (
+              ) : activeTab === "addons" ? (
                 <>
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Addon Name *</label>
@@ -242,6 +299,27 @@ export default function VenueSettings() {
                   </div>
                   <label className="flex items-center gap-3 mt-4">
                     <input type="checkbox" checked={addonForm.isActive} onChange={e => setAddonForm({ ...addonForm, isActive: e.target.checked })} className="w-5 h-5 text-brand-500 rounded border-gray-300 focus:ring-brand-500" />
+                    <span className="text-sm font-semibold text-gray-800 dark:text-white/90">Active</span>
+                  </label>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Plan Name *</label>
+                    <input type="text" required value={planForm.name} onChange={e => setPlanForm({ ...planForm, name: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-brand-500" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Duration (Months) *</label>
+                      <input type="number" required min="1" value={planForm.durationMonths} onChange={e => setPlanForm({ ...planForm, durationMonths: Number(e.target.value) })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-brand-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Price (₹) *</label>
+                      <input type="number" required min="0" value={planForm.price} onChange={e => setPlanForm({ ...planForm, price: Number(e.target.value) })} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white focus:ring-brand-500" />
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-3 mt-4">
+                    <input type="checkbox" checked={planForm.isActive} onChange={e => setPlanForm({ ...planForm, isActive: e.target.checked })} className="w-5 h-5 text-brand-500 rounded border-gray-300 focus:ring-brand-500" />
                     <span className="text-sm font-semibold text-gray-800 dark:text-white/90">Active</span>
                   </label>
                 </>

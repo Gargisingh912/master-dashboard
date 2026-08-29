@@ -617,3 +617,134 @@ END $$;
 -- RLS:      Enabled on ALL tables with org-scoped policies +
 --           public access for QR ordering flow
 -- ============================================================================
+
+-- Calendar Events Table
+CREATE TABLE IF NOT EXISTS calendar_events (
+  id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  created_by      UUID REFERENCES auth.users(id),
+  
+  title           TEXT NOT NULL,
+  description     TEXT,
+  
+  -- Type: 'task' | 'reminder' | 'event'
+  event_type      TEXT NOT NULL DEFAULT 'task',
+  
+  -- Scheduling
+  start_date      DATE NOT NULL,
+  end_date        DATE,                          -- null = single-day
+  start_time      TIME,                          -- null = all-day
+  end_time        TIME,
+  is_all_day      BOOLEAN NOT NULL DEFAULT true,
+  
+  -- Category / color
+  category        TEXT NOT NULL DEFAULT 'Primary', -- Primary | Success | Warning | Danger
+  
+  -- Task-specific
+  is_completed    BOOLEAN NOT NULL DEFAULT false,
+  
+  -- Reminder-specific
+  reminder_time   TIMESTAMPTZ,                    -- when to fire the reminder
+  
+  -- Metadata
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  updated_at      TIMESTAMPTZ DEFAULT now()
+);
+
+-- RLS policies
+ALTER TABLE calendar_events ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Org members can view their org events"
+  ON calendar_events FOR SELECT
+  USING (organization_id IN (
+    SELECT organization_id FROM profiles WHERE id = auth.uid()
+  ));
+
+CREATE POLICY "Org members can insert events"
+  ON calendar_events FOR INSERT
+  WITH CHECK (organization_id IN (
+    SELECT organization_id FROM profiles WHERE id = auth.uid()
+  ));
+
+CREATE POLICY "Org members can update their org events"
+  ON calendar_events FOR UPDATE
+  USING (organization_id IN (
+    SELECT organization_id FROM profiles WHERE id = auth.uid()
+  ));
+
+CREATE POLICY "Org members can delete their org events"
+  ON calendar_events FOR DELETE
+  USING (organization_id IN (
+    SELECT organization_id FROM profiles WHERE id = auth.uid()
+  ));
+
+-- ============================================================================
+-- 17. VENUE MEMBERSHIPS
+-- ============================================================================
+
+-- Membership Plans
+CREATE TABLE IF NOT EXISTS venue_membership_plans (
+  id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  name            TEXT NOT NULL,
+  duration_months INTEGER NOT NULL,
+  price           NUMERIC NOT NULL,
+  is_active       BOOLEAN DEFAULT true,
+  created_at      TIMESTAMPTZ DEFAULT now()
+);
+
+-- Members
+CREATE TABLE IF NOT EXISTS venue_members (
+  id                 UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  organization_id    UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  name               TEXT NOT NULL,
+  contact            TEXT,
+  email              TEXT,
+  dob                DATE,
+  membership_plan_id UUID REFERENCES venue_membership_plans(id),
+  membership_start   DATE,
+  membership_end     DATE,
+  is_active          BOOLEAN DEFAULT true,
+  created_at         TIMESTAMPTZ DEFAULT now()
+);
+
+-- Check-ins
+CREATE TABLE IF NOT EXISTS venue_checkins (
+  id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  member_id       UUID NOT NULL REFERENCES venue_members(id) ON DELETE CASCADE,
+  checkin_time    TIMESTAMPTZ DEFAULT now()
+);
+
+-- RLS policies
+ALTER TABLE venue_membership_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE venue_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE venue_checkins ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage venue membership plans"
+  ON venue_membership_plans FOR ALL
+  USING (organization_id = public.current_user_org_id())
+  WITH CHECK (organization_id = public.current_user_org_id());
+
+CREATE POLICY "Users can manage venue members"
+  ON venue_members FOR ALL
+  USING (organization_id = public.current_user_org_id())
+  WITH CHECK (organization_id = public.current_user_org_id());
+
+CREATE POLICY "Users can manage venue checkins"
+  ON venue_checkins FOR ALL
+  USING (organization_id = public.current_user_org_id())
+  WITH CHECK (organization_id = public.current_user_org_id());
+
+DO $$ BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE venue_membership_plans;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+DO $$ BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE venue_members;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+DO $$ BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE venue_checkins;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;

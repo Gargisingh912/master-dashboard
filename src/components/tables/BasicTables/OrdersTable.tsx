@@ -13,24 +13,78 @@ import { useKitchen } from "../../../context/KitchenContext";
 import { Edit, Check, X, FileText, Printer, MessageCircle } from "lucide-react";
 import { TableRowSkeleton } from "../../ui/skeleton/Skeleton";
 
-const playAcceptSound = () => {
-  const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-  if (!AudioContextClass) return;
-  const ctx = new AudioContextClass();
-  const osc = ctx.createOscillator();
-  const gainNode = ctx.createGain();
-  
-  osc.connect(gainNode);
-  gainNode.connect(ctx.destination);
-  
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(880, ctx.currentTime);
-  gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-  
-  osc.start();
-  gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-  osc.stop(ctx.currentTime + 0.5);
-};
+// ── Status pipeline definition ──────────────────────────────────────────────
+const STATUS_STEPS: { db: string; label: string; color: string; dot: string }[] = [
+  { db: "Placed",    label: "Pending",   color: "text-gray-500 dark:text-gray-400",       dot: "bg-gray-400 dark:bg-gray-500" },
+  { db: "Preparing", label: "Accepted",  color: "text-warning-600 dark:text-warning-400", dot: "bg-warning-500" },
+  { db: "Ready",     label: "Prepared",  color: "text-blue-600 dark:text-blue-400",        dot: "bg-blue-500" },
+  { db: "Delivered", label: "Delivered", color: "text-success-600 dark:text-success-400",  dot: "bg-success-500" },
+];
+
+function OrderStatusStepper({
+  status,
+  onAdvance,
+}: {
+  status: string;
+  onAdvance: (next: string) => void;
+}) {
+  const currentIdx = STATUS_STEPS.findIndex((s) => s.db === status);
+
+  return (
+    <div className="flex items-center gap-0 min-w-[180px]">
+      {STATUS_STEPS.map((step, idx) => {
+        const isDone    = idx < currentIdx;
+        const isCurrent = idx === currentIdx;
+        const isNext    = idx === currentIdx + 1;
+        const isLast    = idx === STATUS_STEPS.length - 1;
+
+        return (
+          <div key={step.db} className="flex items-center">
+            {/* Step node */}
+            <div className="flex flex-col items-center gap-0.5">
+              <button
+                title={isNext ? `Mark as ${step.label}` : step.label}
+                disabled={!isNext}
+                onClick={() => isNext && onAdvance(step.db)}
+                className={`
+                  w-5 h-5 rounded-full flex items-center justify-center border-2 transition-all duration-200
+                  ${isDone
+                    ? `${step.dot} border-transparent text-white`
+                    : isCurrent
+                    ? `${step.dot} border-transparent animate-pulse`
+                    : isNext
+                    ? "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-brand-400 hover:scale-110 cursor-pointer"
+                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-default opacity-40"
+                  }
+                `}
+              >
+                {isDone && (
+                  <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </button>
+              <span className={`text-[9px] font-semibold leading-none whitespace-nowrap ${
+                isDone || isCurrent ? step.color : "text-gray-300 dark:text-gray-600"
+              }`}>
+                {step.label}
+              </span>
+            </div>
+
+            {/* Connector line */}
+            {!isLast && (
+              <div className={`h-0.5 w-6 mx-0.5 rounded-full mb-3 transition-colors duration-300 ${
+                isDone ? step.dot : "bg-gray-200 dark:bg-gray-700"
+              }`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+
 
 export default function OrdersTable() {
   const { orders, menu, updateOrderStatus, updateOrder, loading } = useKitchen();
@@ -70,10 +124,6 @@ export default function OrdersTable() {
   };
 
   const handleStatusChange = (order: any, newStatus: string) => {
-    if (newStatus === "Preparing") {
-      playAcceptSound();
-      setInvoiceOrder(order);
-    }
     updateOrderStatus(order.id, newStatus);
   };
   
@@ -218,17 +268,18 @@ export default function OrdersTable() {
           )}
         </TableCell>
 
-        {/* Status */}
-        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
-            order.status === "Delivered" ? "bg-success-50 text-success-700 dark:bg-success-500/10 dark:text-success-400" :
-            order.status === "Ready" ? "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400" :
-            order.status === "Preparing" ? "bg-warning-50 text-warning-700 dark:bg-warning-500/10 dark:text-warning-400" :
-            (order.status === "Cancelled" || order.status === "Declined") ? "bg-error-50 text-error-700 dark:bg-error-500/10 dark:text-error-400" :
-            "bg-gray-100 text-gray-700 dark:bg-white/5 dark:text-white/80"
-          }`}>
-            {order.status}
-          </span>
+        {/* Status — inline 4-step stepper */}
+        <TableCell className="px-4 py-3 text-start">
+          {(order.status === "Cancelled" || order.status === "Declined" || order.status === "Missed") ? (
+            <span className="inline-flex rounded-full px-3 py-1 text-xs font-medium bg-error-50 text-error-700 dark:bg-error-500/10 dark:text-error-400">
+              {order.status}
+            </span>
+          ) : (
+            <OrderStatusStepper
+              status={order.status}
+              onAdvance={(next) => handleStatusChange(order, next)}
+            />
+          )}
         </TableCell>
         
         {/* Actions */}
