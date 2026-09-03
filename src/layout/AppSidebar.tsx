@@ -117,7 +117,7 @@ const wellnessNavItems: NavItem[] = [
 
 // ── Venue Booking nav ──────────────────────────────────────────────────────
 const venueNavItems: NavItem[] = [
-  { icon: <PieChart size={20} strokeWidth={2} />, name: "Overview", path: "/venue-booking/overview" },
+  /*{ icon: <PieChart size={20} strokeWidth={2} />, name: "Overview", path: "/venue-booking/overview" },*/
   { icon: <Calendar size={20} strokeWidth={2} />, name: "Bookings", path: "/venue-booking/bookings" },
   { icon: <Users size={20} strokeWidth={2} />, name: "Memberships", path: "/venue-booking/memberships" },
   { icon: <GridIcon />, name: "Venues & Addons", path: "/venue-booking/settings" },
