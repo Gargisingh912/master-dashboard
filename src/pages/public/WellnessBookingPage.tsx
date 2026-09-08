@@ -18,6 +18,7 @@ export default function WellnessBookingPage({ organizationId: propOrgId }: { org
   let organizationId = propOrgId || paramOrgId;
   
   const [orgName, setOrgName] = useState("");
+  const [orgLogo, setOrgLogo] = useState("");
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -47,9 +48,10 @@ export default function WellnessBookingPage({ organizationId: propOrgId }: { org
           return;
         }
 
-        const { data: orgData, error: orgErr } = await supabasePublic.from("organizations").select("name").eq("id", organizationId).single();
+        const { data: orgData, error: orgErr } = await supabasePublic.from("organizations").select("name, logo_url").eq("id", organizationId).single();
         if (orgErr) throw orgErr;
         setOrgName(orgData.name);
+        if (orgData.logo_url) setOrgLogo(orgData.logo_url);
 
         const { data: trtData, error: trtErr } = await supabasePublic.from("wellness_treatments").select("*").eq("organization_id", organizationId).eq("is_active", true);
         if (trtErr) throw trtErr;
@@ -133,6 +135,9 @@ export default function WellnessBookingPage({ organizationId: propOrgId }: { org
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
               
               <div className="p-8 border-b border-gray-100 dark:border-gray-700 text-center bg-brand-500 text-white">
+                  {orgLogo && (
+                    <img src={orgLogo} alt="Logo" className="w-16 h-16 rounded-2xl object-cover mx-auto mb-4 ring-4 ring-white/30 shadow-lg" />
+                  )}
                   <h1 className="text-2xl font-black">{orgName}</h1>
                   <p className="text-brand-100 mt-1 font-medium">Wellness Appointments</p>
               </div>
